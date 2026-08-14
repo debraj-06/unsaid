@@ -7,17 +7,13 @@ import torch
 
 
 # ==========================================
-# MODEL CONFIG
+# MODEL
 # ==========================================
 
-MODEL_NAME = (
-    "HuggingFaceTB/"
-    "SmolLM2-135M-Instruct"
-)
+MODEL_NAME = "HuggingFaceTB/SmolLM2-135M-Instruct"
 
-print(
-    "Loading Unsaid AI model..."
-)
+
+print("Loading Unsaid AI model...")
 
 
 # ==========================================
@@ -42,9 +38,7 @@ model = AutoModelForCausalLM.from_pretrained(
 model.eval()
 
 
-print(
-    "Unsaid AI model loaded."
-)
+print("Unsaid AI model loaded.")
 
 
 # ==========================================
@@ -84,7 +78,6 @@ College is killing me. I don't know what to do.
 # ==========================================
 
 def improve_thought(text: str) -> str:
-
     original = (
         text.strip()
         if isinstance(text, str)
@@ -94,17 +87,12 @@ def improve_thought(text: str) -> str:
     if not original:
         return original
 
-
-    # --------------------------------------
-    # Keep the incoming text small.
-    # --------------------------------------
-
+    # Keep input within a reasonable size.
     original = original[:1000]
 
-
-    # --------------------------------------
+    # ======================================
     # CHAT MESSAGES
-    # --------------------------------------
+    # ======================================
 
     messages = [
         {
@@ -114,17 +102,15 @@ def improve_thought(text: str) -> str:
         {
             "role": "user",
             "content": (
-                "Improve this thought with "
-                "minimal changes:\n\n"
-                f"{original}"
+                "Improve this thought with minimal changes:\n\n"
+                + original
             ),
         },
     ]
 
-
-    # --------------------------------------
+    # ======================================
     # BUILD PROMPT
-    # --------------------------------------
+    # ======================================
 
     prompt = tokenizer.apply_chat_template(
         messages,
@@ -132,10 +118,9 @@ def improve_thought(text: str) -> str:
         add_generation_prompt=True,
     )
 
-
-    # --------------------------------------
+    # ======================================
     # TOKENIZE
-    # --------------------------------------
+    # ======================================
 
     inputs = tokenizer(
         prompt,
@@ -144,60 +129,42 @@ def improve_thought(text: str) -> str:
         max_length=384,
     )
 
-
-    # --------------------------------------
+    # ======================================
     # GENERATE
-    # --------------------------------------
+    # ======================================
 
     with torch.inference_mode():
-
         outputs = model.generate(
             **inputs,
-
             max_new_tokens=48,
-
             do_sample=False,
-
             repetition_penalty=1.03,
-
-            pad_token_id=(
-                tokenizer.eos_token_id
-            ),
+            pad_token_id=tokenizer.eos_token_id,
         )
 
+    # ======================================
+    # REMOVE PROMPT TOKENS
+    # ======================================
 
-    # --------------------------------------
-    # REMOVE PROMPT
-    # --------------------------------------
+    input_length = inputs["input_ids"].shape[1]
 
-    input_length = (
-        inputs["input_ids"]
-        .shape[1]
-    )
-
-
-    generated_tokens = (
-        outputs[0][input_length:]
-    )
-
+    generated_tokens = outputs[0][input_length:]
 
     result = tokenizer.decode(
         generated_tokens,
         skip_special_tokens=True,
     ).strip()
 
-
-    # --------------------------------------
+    # ======================================
     # FALLBACK
-    # --------------------------------------
+    # ======================================
 
     if not result:
         return original
 
-
-    # --------------------------------------
+    # ======================================
     # CLEAN OUTPUT
-    # --------------------------------------
+    # ======================================
 
     unwanted_prefixes = [
         "improved thought:",
@@ -207,61 +174,39 @@ def improve_thought(text: str) -> str:
         "output:",
     ]
 
-
     cleaned = result.strip()
-
-
-    lower_result =
-        cleaned.lower()
-
+    lower_result = cleaned.lower()
 
     for prefix in unwanted_prefixes:
-
-        if lower_result.startswith(
-            prefix
-        ):
-            cleaned = (
-                cleaned[
-                    len(prefix):
-                ].strip()
-            )
-
+        if lower_result.startswith(prefix):
+            cleaned = cleaned[len(prefix):].strip()
             break
 
-
-    # --------------------------------------
+    # ======================================
     # REMOVE ACCIDENTAL QUOTES
-    # --------------------------------------
+    # ======================================
 
-    if (
-        len(cleaned) >= 2
-        and (
-            (
-                cleaned.startswith('"')
-                and cleaned.endswith('"')
-            )
-            or (
-                cleaned.startswith("'")
-                and cleaned.endswith("'")
-            )
-        )
-    ):
-        cleaned = (
-            cleaned[1:-1]
-            .strip()
-        )
+    if len(cleaned) >= 2:
+        if (
+            cleaned.startswith('"')
+            and cleaned.endswith('"')
+        ):
+            cleaned = cleaned[1:-1].strip()
 
+        elif (
+            cleaned.startswith("'")
+            and cleaned.endswith("'")
+        ):
+            cleaned = cleaned[1:-1].strip()
 
-    # --------------------------------------
-    # SAFETY
-    # --------------------------------------
+    # ======================================
+    # SAFETY FALLBACK
+    # ======================================
 
     if not cleaned:
         return original
 
-
     if len(cleaned) > 1000:
         return original
-
 
     return cleaned
