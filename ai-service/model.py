@@ -1,44 +1,27 @@
-from transformers import (
-    AutoTokenizer,
-    AutoModelForCausalLM,
+import os
+
+from huggingface_hub import InferenceClient
+
+
+# ==========================================
+# CONFIG
+# ==========================================
+
+MODEL_NAME = os.getenv(
+    "HF_MODEL",
+    "HuggingFaceTB/SmolLM2-135M-Instruct",
 )
 
-import torch
+HF_TOKEN = os.getenv("HF_TOKEN")
 
 
 # ==========================================
-# MODEL
+# HUGGING FACE CLIENT
 # ==========================================
 
-MODEL_NAME = "HuggingFaceTB/SmolLM2-135M-Instruct"
-
-
-print("Loading Unsaid AI model...")
-
-
-# ==========================================
-# TOKENIZER
-# ==========================================
-
-tokenizer = AutoTokenizer.from_pretrained(
-    MODEL_NAME,
-    use_fast=True,
+client = InferenceClient(
+    api_key=HF_TOKEN,
 )
-
-
-# ==========================================
-# MODEL
-# ==========================================
-
-model = AutoModelForCausalLM.from_pretrained(
-    MODEL_NAME,
-    low_cpu_mem_usage=True,
-)
-
-model.eval()
-
-
-print("Unsaid AI model loaded.")
 
 
 # ==========================================
@@ -48,20 +31,29 @@ print("Unsaid AI model loaded.")
 SYSTEM_PROMPT = """
 You are Unsaid's writing assistant.
 
-Lightly improve the user's thought before
-they post it.
+Your ONLY job is to lightly improve a user's
+thought before they post it.
 
-Rules:
+IMPORTANT RULES:
 
-- Preserve the exact meaning.
-- Preserve the emotion and personality.
-- Fix grammar, spelling, punctuation,
-  capitalization, and awkward wording.
-- Make minimal changes.
-- Do not add facts or opinions.
-- Do not make it formal or motivational.
-- Do not explain the changes.
-- Return only the improved thought.
+1. Preserve the EXACT meaning.
+2. Preserve the original emotion.
+3. Preserve the user's personality and tone.
+4. Make only necessary changes.
+5. Fix grammar, spelling, punctuation,
+   capitalization, abbreviations, and awkward
+   wording when necessary.
+6. Keep the original wording whenever it is
+   already clear.
+7. Do NOT reinterpret the thought.
+8. Do NOT add facts, opinions, or assumptions.
+9. Do NOT remove important emotional meaning.
+10. Do NOT make the thought motivational.
+11. Do NOT make it corporate or formal.
+12. Do NOT make it sound like an essay.
+13. Do NOT explain your changes.
+14. Do NOT add quotation marks.
+15. Return ONLY the improved thought.
 
 Example:
 
@@ -70,101 +62,39 @@ college is killing me idk what to do
 
 Output:
 College is killing me. I don't know what to do.
+
+Input:
+im so tired of pretending everything is fine
+
+Output:
+I'm so tired of pretending everything is fine.
+
+Input:
+everyone is moving ahead except me
+
+Output:
+Everyone is moving ahead except me.
+
+Input:
+idk why i keep overthinking everything
+
+Output:
+I don't know why I keep overthinking everything.
 """
 
 
 # ==========================================
-# IMPROVE THOUGHT
+# CLEAN RESULT
 # ==========================================
 
-def improve_thought(text: str) -> str:
-    original = (
-        text.strip()
-        if isinstance(text, str)
-        else ""
-    )
-
-    if not original:
-        return original
-
-    # Keep input within a reasonable size.
-    original = original[:1000]
-
-    # ======================================
-    # CHAT MESSAGES
-    # ======================================
-
-    messages = [
-        {
-            "role": "system",
-            "content": SYSTEM_PROMPT,
-        },
-        {
-            "role": "user",
-            "content": (
-                "Improve this thought with minimal changes:\n\n"
-                + original
-            ),
-        },
-    ]
-
-    # ======================================
-    # BUILD PROMPT
-    # ======================================
-
-    prompt = tokenizer.apply_chat_template(
-        messages,
-        tokenize=False,
-        add_generation_prompt=True,
-    )
-
-    # ======================================
-    # TOKENIZE
-    # ======================================
-
-    inputs = tokenizer(
-        prompt,
-        return_tensors="pt",
-        truncation=True,
-        max_length=384,
-    )
-
-    # ======================================
-    # GENERATE
-    # ======================================
-
-    with torch.inference_mode():
-        outputs = model.generate(
-            **inputs,
-            max_new_tokens=48,
-            do_sample=False,
-            repetition_penalty=1.03,
-            pad_token_id=tokenizer.eos_token_id,
-        )
-
-    # ======================================
-    # REMOVE PROMPT TOKENS
-    # ======================================
-
-    input_length = inputs["input_ids"].shape[1]
-
-    generated_tokens = outputs[0][input_length:]
-
-    result = tokenizer.decode(
-        generated_tokens,
-        skip_special_tokens=True,
-    ).strip()
-
-    # ======================================
-    # FALLBACK
-    # ======================================
-
+def clean_result(
+    result: str,
+    original: str,
+) -> str:
     if not result:
         return original
 
-    # ======================================
-    # CLEAN OUTPUT
-    # ======================================
+    cleaned = result.strip()
 
     unwanted_prefixes = [
         "improved thought:",
@@ -174,7 +104,6 @@ def improve_thought(text: str) -> str:
         "output:",
     ]
 
-    cleaned = result.strip()
     lower_result = cleaned.lower()
 
     for prefix in unwanted_prefixes:
@@ -182,10 +111,7 @@ def improve_thought(text: str) -> str:
             cleaned = cleaned[len(prefix):].strip()
             break
 
-    # ======================================
-    # REMOVE ACCIDENTAL QUOTES
-    # ======================================
-
+    # Remove accidental quotes.
     if len(cleaned) >= 2:
         if (
             cleaned.startswith('"')
@@ -199,10 +125,6 @@ def improve_thought(text: str) -> str:
         ):
             cleaned = cleaned[1:-1].strip()
 
-    # ======================================
-    # SAFETY FALLBACK
-    # ======================================
-
     if not cleaned:
         return original
 
@@ -210,3 +132,69 @@ def improve_thought(text: str) -> str:
         return original
 
     return cleaned
+
+
+# ==========================================
+# IMPROVE THOUGHT
+# ==========================================
+
+def improve_thought(
+    text: str,
+) -> str:
+    original = (
+        text.strip()
+        if isinstance(text, str)
+        else ""
+    )
+
+    if not original:
+        return original
+
+    original = original[:1000]
+
+    messages = [
+        {
+            "role": "system",
+            "content": SYSTEM_PROMPT,
+        },
+        {
+            "role": "user",
+            "content": (
+                "Improve this thought "
+                "with minimal changes:\n\n"
+                + original
+            ),
+        },
+    ]
+
+    try:
+        response = client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=messages,
+            max_tokens=80,
+            temperature=0.1,
+            top_p=0.9,
+        )
+
+        result = ""
+
+        if response and response.choices:
+            message = response.choices[0].message
+
+            if message:
+                result = message.content or ""
+
+        return clean_result(
+            result,
+            original,
+        )
+
+    except Exception as error:
+        print(
+            "Hugging Face inference error:",
+            error,
+        )
+
+        # Keep the AI endpoint usable if the
+        # remote inference provider temporarily fails.
+        return original
