@@ -160,7 +160,7 @@ app.use(
 
 
 // ==========================================
-// 404
+// 404 HANDLER
 // ==========================================
 
 app.use(
@@ -204,9 +204,10 @@ const PORT =
 
 app.listen(
   PORT,
+  "0.0.0.0",
   () => {
     console.log(
-      `Unsaid server running on http://localhost:${PORT}`
+      `Unsaid API running on port ${PORT}`
     );
   }
 );
