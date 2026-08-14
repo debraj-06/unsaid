@@ -1,0 +1,243 @@
+@import "tailwindcss";
+
+/* ==========================================
+   TAILWIND DARK MODE
+   ========================================== */
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+
+/* ==========================================
+   ROOT
+   ========================================== */
+
+:root {
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  color-scheme: light;
+}
+
+
+/* ==========================================
+   DARK ROOT
+   ========================================== */
+
+html.dark {
+  color-scheme: dark;
+}
+
+
+/* ==========================================
+   HTML / BODY / ROOT
+   ========================================== */
+
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+}
+
+
+html {
+  background: #faf8fa;
+}
+
+
+html.dark {
+  background: #121016;
+}
+
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+
+  background: #faf8fa;
+  color: #302936;
+
+  overflow-x: hidden;
+}
+
+
+html.dark body {
+  background: #121016;
+  color: #f3edf7;
+}
+
+
+/* ==========================================
+   BOX SIZING
+   ========================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+
+/* ==========================================
+   BUTTONS
+   ========================================== */
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+
+button {
+  font: inherit;
+}
+
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+
+/* ==========================================
+   INPUTS
+   ========================================== */
+
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+
+textarea {
+  scrollbar-width: thin;
+}
+
+
+/* ==========================================
+   LINKS
+   ========================================== */
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+
+/* ==========================================
+   SELECTION
+   ========================================== */
+
+::selection {
+  background: #ddd1e7;
+  color: #302839;
+}
+
+
+/* ==========================================
+   SCROLLBAR
+   ========================================== */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #cfc4d4 transparent;
+}
+
+
+html.dark * {
+  scrollbar-color: #49404f transparent;
+}
+
+
+/* Chrome / Edge / Safari */
+
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+
+::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #cfc4d4;
+}
+
+
+::-webkit-scrollbar-thumb:hover {
+  background: #b9aabe;
+}
+
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: #49404f;
+}
+
+
+html.dark
+  ::-webkit-scrollbar-thumb:hover {
+  background: #5b4e62;
+}
+
+
+/* ==========================================
+   MOBILE
+   ========================================== */
+
+@media (max-width: 640px) {
+  html,
+  body {
+    overflow-x: hidden;
+  }
+
+  body {
+    width: 100%;
+  }
+}
+
+
+/* ==========================================
+   REDUCE MOTION
+   ========================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+
+/* ==========================================
+   SAFE AREA
+   ========================================== */
+
+@supports (
+  padding-bottom: env(
+    safe-area-inset-bottom
+  )
+) {
+  body {
+    padding-bottom: 0;
+  }
+}
