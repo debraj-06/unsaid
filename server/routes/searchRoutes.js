@@ -5,8 +5,11 @@ const authMiddleware =
 
 const {
   universalSearch,
+  mentionSearch,
   explore,
-} = require("../controllers/searchController");
+} = require(
+  "../controllers/searchController"
+);
 
 const router =
   express.Router();
@@ -24,6 +27,17 @@ router.get(
 
 
 // ==========================================
+// MENTION SEARCH
+// ==========================================
+
+router.get(
+  "/mentions",
+  authMiddleware,
+  mentionSearch
+);
+
+
+// ==========================================
 // DISCOVER / EXPLORE
 // ==========================================
 
@@ -34,4 +48,9 @@ router.get(
 );
 
 
-module.exports = router;
+// ==========================================
+// EXPORT
+// ==========================================
+
+module.exports =
+  router;

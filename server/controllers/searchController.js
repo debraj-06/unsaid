@@ -101,13 +101,12 @@ const getDiscoverPeople = async (
       },
     })
       .select(
-        "_id username bio createdAt followers"
+        "_id username bio createdAt followers following"
       )
       .sort({
         createdAt: -1,
       })
       .limit(8);
-
 
   if (
     users.length === 0
@@ -115,17 +114,11 @@ const getDiscoverPeople = async (
     return [];
   }
 
-
-  // ========================================
-  // THOUGHT COUNTS
-  // ========================================
-
   const userIds =
     users.map(
       (user) =>
         user._id
     );
-
 
   const thoughtCounts =
     await Thought.aggregate([
@@ -150,7 +143,6 @@ const getDiscoverPeople = async (
       },
     ]);
 
-
   const thoughtCountMap =
     new Map(
       thoughtCounts.map(
@@ -160,11 +152,6 @@ const getDiscoverPeople = async (
         ]
       )
     );
-
-
-  // ========================================
-  // FORMAT PEOPLE
-  // ========================================
 
   return users.map(
     (user) => ({
@@ -187,6 +174,13 @@ const getDiscoverPeople = async (
           user.followers
         )
           ? user.followers.length
+          : 0,
+
+      followingCount:
+        Array.isArray(
+          user.following
+        )
+          ? user.following.length
           : 0,
 
       createdAt:
@@ -213,7 +207,6 @@ const getTrendingTopics =
               1000
         );
 
-
       const thoughts =
         await Thought.find({
           createdAt: {
@@ -229,13 +222,12 @@ const getTrendingTopics =
           })
           .limit(1000);
 
-
       const topicMap =
         new Map();
 
-
       for (
-        const thought of thoughts
+        const thought of
+        thoughts
       ) {
         const content =
           typeof thought.content ===
@@ -243,12 +235,10 @@ const getTrendingTopics =
             ? thought.content
             : "";
 
-
         const matches =
           content.match(
             /(^|\s)#([a-zA-Z0-9_]{2,30})\b/g
           ) || [];
-
 
         const uniqueTopics =
           [
@@ -263,9 +253,9 @@ const getTrendingTopics =
             ),
           ];
 
-
         for (
-          const topic of uniqueTopics
+          const topic of
+          uniqueTopics
         ) {
           const current =
             topicMap.get(
@@ -276,9 +266,7 @@ const getTrendingTopics =
                 thought.createdAt,
             };
 
-
           current.count += 1;
-
 
           if (
             new Date(
@@ -292,14 +280,12 @@ const getTrendingTopics =
               thought.createdAt;
           }
 
-
           topicMap.set(
             topic,
             current
           );
         }
       }
-
 
       return [
         ...topicMap.entries(),
@@ -367,14 +353,12 @@ const universalSearch = async (
         ? req.query.q.trim()
         : "";
 
-
     if (!query) {
       return res.json({
         users: [],
         thoughts: [],
       });
     }
-
 
     if (
       query.length >
@@ -386,23 +370,14 @@ const universalSearch = async (
       });
     }
 
-
     const escaped =
-      escapeRegex(
-        query
-      );
-
+      escapeRegex(query);
 
     const regex =
       new RegExp(
         escaped,
         "i"
       );
-
-
-    // ========================================
-    // USERS
-    // ========================================
 
     const users =
       await User.find({
@@ -412,17 +387,12 @@ const universalSearch = async (
         },
       })
         .select(
-          "_id username bio followers"
+          "_id username bio followers following"
         )
         .sort({
           username: 1,
         })
         .limit(10);
-
-
-    // ========================================
-    // THOUGHTS
-    // ========================================
 
     const thoughts =
       await Thought.find({
@@ -439,11 +409,6 @@ const universalSearch = async (
           createdAt: -1,
         })
         .limit(20);
-
-
-    // ========================================
-    // FORMAT USERS
-    // ========================================
 
     const formattedUsers =
       users.map(
@@ -463,13 +428,15 @@ const universalSearch = async (
             )
               ? user.followers.length
               : 0,
+
+          followingCount:
+            Array.isArray(
+              user.following
+            )
+              ? user.following.length
+              : 0,
         })
       );
-
-
-    // ========================================
-    // FORMAT THOUGHTS
-    // ========================================
 
     const formattedThoughts =
       await Promise.all(
@@ -481,7 +448,6 @@ const universalSearch = async (
             )
         )
       );
-
 
     return res.json({
       users:
@@ -505,6 +471,104 @@ const universalSearch = async (
 
 
 // ==========================================
+// MENTION SEARCH
+// ==========================================
+
+const mentionSearch = async (
+  req,
+  res
+) => {
+  try {
+    const query =
+      typeof req.query.q ===
+      "string"
+        ? req.query.q.trim()
+        : "";
+
+    if (!query) {
+      return res.json({
+        users: [],
+      });
+    }
+
+    if (
+      query.length >
+      30
+    ) {
+      return res.status(400).json({
+        message:
+          "Mention query is too long",
+      });
+    }
+
+    const escaped =
+      escapeRegex(query);
+
+    const regex =
+      new RegExp(
+        `^${escaped}`,
+        "i"
+      );
+
+    const users =
+      await User.find({
+        username: {
+          $regex:
+            regex,
+        },
+      })
+        .select(
+          "_id username bio followers following"
+        )
+        .sort({
+          username: 1,
+        })
+        .limit(8);
+
+    return res.json({
+      users:
+        users.map(
+          (user) => ({
+            id:
+              user._id,
+
+            username:
+              user.username,
+
+            bio:
+              user.bio || "",
+
+            followersCount:
+              Array.isArray(
+                user.followers
+              )
+                ? user.followers.length
+                : 0,
+
+            followingCount:
+              Array.isArray(
+                user.following
+              )
+                ? user.following.length
+                : 0,
+          })
+        ),
+    });
+  } catch (error) {
+    console.error(
+      "Mention search error:",
+      error
+    );
+
+    return res.status(500).json({
+      message:
+        "Unable to search users",
+    });
+  }
+};
+
+
+// ==========================================
 // EXPLORE
 // ==========================================
 
@@ -519,16 +583,13 @@ const explore = async (
         ? "popular"
         : "latest";
 
-
     const people =
       await getDiscoverPeople(
         req.userId
       );
 
-
     const trending =
       await getTrendingTopics();
-
 
     // ========================================
     // LATEST
@@ -549,7 +610,6 @@ const explore = async (
           })
           .limit(30);
 
-
       const formatted =
         await Promise.all(
           thoughts.map(
@@ -560,7 +620,6 @@ const explore = async (
               )
           )
         );
-
 
       return res.json({
         sort:
@@ -575,14 +634,12 @@ const explore = async (
       });
     }
 
-
     // ========================================
     // POPULAR
     // ========================================
 
     const now =
       new Date();
-
 
     const pipeline = [
       {
@@ -725,12 +782,10 @@ const explore = async (
       },
     ];
 
-
     const popular =
       await Thought.aggregate(
         pipeline
       );
-
 
     const formatted =
       await Promise.all(
@@ -745,14 +800,12 @@ const explore = async (
                 ? item.likes
                 : [];
 
-
             const bookmarks =
               Array.isArray(
                 item.bookmarks
               )
                 ? item.bookmarks
                 : [];
-
 
             return {
               id:
@@ -801,7 +854,6 @@ const explore = async (
         )
       );
 
-
     return res.json({
       sort:
         "popular",
@@ -827,7 +879,12 @@ const explore = async (
 };
 
 
+// ==========================================
+// EXPORTS
+// ==========================================
+
 module.exports = {
   universalSearch,
+  mentionSearch,
   explore,
 };

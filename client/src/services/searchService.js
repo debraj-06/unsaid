@@ -1,12 +1,45 @@
-import { apiFetch } from "./api";
+import {
+  apiFetch,
+} from "./api";
+
+
+// ==========================================
+// SEARCH USERS FOR MENTIONS
+// ==========================================
+
+export function searchMentionUsers(
+  query
+) {
+  const cleanQuery =
+    String(
+      query || ""
+    ).trim();
+
+  if (!cleanQuery) {
+    return Promise.resolve({
+      users: [],
+    });
+  }
+
+  return apiFetch(
+    `/search/mentions?q=${encodeURIComponent(
+      cleanQuery
+    )}`
+  );
+}
 
 
 // ==========================================
 // UNIVERSAL SEARCH
 // ==========================================
 
-export function searchEverything(query) {
-  const cleanQuery = query.trim();
+export function universalSearch(
+  query
+) {
+  const cleanQuery =
+    String(
+      query || ""
+    ).trim();
 
   if (!cleanQuery) {
     return Promise.resolve({
@@ -16,7 +49,7 @@ export function searchEverything(query) {
   }
 
   return apiFetch(
-    `/api/search?q=${encodeURIComponent(
+    `/search?q=${encodeURIComponent(
       cleanQuery
     )}`
   );
@@ -24,12 +57,14 @@ export function searchEverything(query) {
 
 
 // ==========================================
-// DISCOVER
+// EXPLORE
 // ==========================================
 
-export function getExplore(sort = "latest") {
+export function getExplore(
+  sort = "latest"
+) {
   return apiFetch(
-    `/api/search/explore?sort=${encodeURIComponent(
+    `/search/explore?sort=${encodeURIComponent(
       sort
     )}`
   );
