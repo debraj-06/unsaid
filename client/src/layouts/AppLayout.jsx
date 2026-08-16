@@ -10,8 +10,8 @@ function AppLayout({
   return (
     <div
       className="
-        min-h-screen
-        overflow-x-hidden
+        h-screen
+        overflow-hidden
         bg-[#faf8fa]
         text-[#302936]
         transition-colors
@@ -22,85 +22,112 @@ function AppLayout({
       "
     >
       {/* ======================================
-          TOPBAR
+          FIXED TOPBAR
       ====================================== */}
 
-      <Topbar
-        darkMode={darkMode}
-        setDarkMode={setDarkMode}
-      />
+      <header
+        className="
+          fixed
+          left-0
+          right-0
+          top-0
+          z-50
+          h-[72px]
+        "
+      >
+        <Topbar
+          darkMode={darkMode}
+          setDarkMode={setDarkMode}
+        />
+      </header>
 
 
       {/* ======================================
-          MAIN APP AREA
+          APP BODY
       ====================================== */}
 
       <div
         className="
-          min-h-[calc(100vh-72px)]
-          bg-[#faf8fa]
-
-          dark:bg-[#121016]
+          h-screen
+          overflow-hidden
+          pt-[72px]
         "
       >
-        <div
+
+        {/* ====================================
+            DESKTOP SIDEBAR
+        ==================================== */}
+
+        <aside
           className="
-            mx-auto
-            grid
-            w-full
-            max-w-[1280px]
-            grid-cols-1
-            gap-6
-            px-3
-            pb-24
-            pt-4
-
-            sm:px-5
-            sm:pt-6
-
-            lg:grid-cols-[200px_minmax(0,1fr)]
-            lg:gap-7
-            lg:px-8
-            lg:pb-10
+            fixed
+            bottom-0
+            left-0
+            top-[72px]
+            z-40
+            hidden
+            w-[220px]
+            border-r
+            border-[#e8e2e9]
+            bg-[#faf8fa]
+            dark:border-[#2d2732]
+            dark:bg-[#121016]
+            lg:block
           "
         >
-          {/* ==================================
-              DESKTOP SIDEBAR
-          ================================== */}
-
-          <aside
+          <div
             className="
-              hidden
-              lg:block
+              h-full
+              overflow-y-auto
+              px-4
+              py-6
             "
           >
-            <div
-              className="
-                sticky
-                top-[96px]
-              "
-            >
-              <AppNavigation />
-            </div>
-          </aside>
+            <AppNavigation />
+          </div>
+        </aside>
 
 
-          {/* ==================================
-              PAGE CONTENT
-          ================================== */}
+        {/* ====================================
+            MAIN CONTENT AREA
+        ==================================== */}
 
-          <main
+        <main
+          className="
+            h-full
+            min-w-0
+            overflow-y-auto
+            overflow-x-hidden
+
+            bg-[#faf8fa]
+            text-[#302936]
+
+            dark:bg-[#121016]
+            dark:text-[#f3edf7]
+
+            lg:ml-[220px]
+          "
+        >
+          <div
             className="
-              min-w-0
+              mx-auto
               w-full
-              text-[#302936]
+              max-w-[1280px]
+              px-3
+              pb-24
+              pt-4
 
-              dark:text-[#f3edf7]
+              sm:px-5
+              sm:pt-6
+
+              lg:px-8
+              lg:pb-10
             "
           >
             <Outlet />
-          </main>
-        </div>
+          </div>
+        </main>
+
       </div>
 
 
@@ -114,7 +141,7 @@ function AppLayout({
           bottom-0
           left-0
           right-0
-          z-40
+          z-50
           border-t
           border-[#e8e2e9]
           bg-white/95

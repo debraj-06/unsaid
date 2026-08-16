@@ -1,10 +1,13 @@
 import { apiFetch } from "./api";
 
+
 // ==========================================
 // IMPROVE THOUGHT
 // ==========================================
 
-export function improveThought(content) {
+export function improveThought(
+  content
+) {
   return apiFetch(
     "/ai/improve-thought",
     {

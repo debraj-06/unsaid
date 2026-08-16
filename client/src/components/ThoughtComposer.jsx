@@ -49,7 +49,7 @@ function ThoughtComposer({
 
 
   // ==========================================
-  // IMPROVE
+  // IMPROVE WITH AI
   // ==========================================
 
   const handleImprove = async () => {
@@ -57,6 +57,14 @@ function ThoughtComposer({
       content.trim();
 
     if (!cleanContent) {
+      return;
+    }
+
+    if (cleanContent.length > 1000) {
+      setError(
+        "Thought cannot exceed 1000 characters"
+      );
+
       return;
     }
 
@@ -71,7 +79,10 @@ function ThoughtComposer({
         );
 
       const improved =
-        data?.improved?.trim();
+        typeof data?.improved ===
+        "string"
+          ? data.improved.trim()
+          : "";
 
       if (!improved) {
         throw new Error(
@@ -79,7 +90,9 @@ function ThoughtComposer({
         );
       }
 
-      setImprovedText(improved);
+      setImprovedText(
+        improved
+      );
     } catch (error) {
       console.error(
         "Improve thought error:",
@@ -88,7 +101,7 @@ function ThoughtComposer({
 
       setError(
         error.message ||
-          "Unable to improve thought"
+          "Unable to improve thought right now"
       );
     } finally {
       setImproving(false);
@@ -100,73 +113,96 @@ function ThoughtComposer({
   // USE AI VERSION
   // ==========================================
 
-  const handleUseImproved = () => {
-    if (!improvedText) {
-      return;
-    }
+  const handleUseImproved =
+    () => {
+      if (!improvedText) {
+        return;
+      }
 
-    setContent(improvedText);
-    setImprovedText("");
-    setError("");
-  };
+      setContent(
+        improvedText
+      );
+
+      setImprovedText("");
+
+      setError("");
+    };
 
 
   // ==========================================
   // DISMISS AI VERSION
   // ==========================================
 
-  const handleDismissImproved = () => {
-    setImprovedText("");
-  };
-
-
-  // ==========================================
-  // POST
-  // ==========================================
-
-  const handleSubmit = async () => {
-    const cleanContent =
-      content.trim();
-
-    if (!cleanContent) {
-      return;
-    }
-
-    try {
-      setPosting(true);
-      setError("");
-
-      await createThought(
-        cleanContent
-      );
-
-      setContent("");
+  const handleDismissImproved =
+    () => {
       setImprovedText("");
+    };
 
-      if (onCreated) {
-        await onCreated();
+
+  // ==========================================
+  // POST THOUGHT
+  // ==========================================
+
+  const handleSubmit =
+    async () => {
+      const cleanContent =
+        content.trim();
+
+      if (!cleanContent) {
+        setError(
+          "Thought cannot be empty"
+        );
+
+        return;
       }
-    } catch (error) {
-      console.error(
-        "Create thought error:",
-        error
-      );
 
-      setError(
-        error.message ||
-          "Unable to publish thought"
-      );
-    } finally {
-      setPosting(false);
-    }
-  };
+      if (cleanContent.length > 1000) {
+        setError(
+          "Thought cannot exceed 1000 characters"
+        );
+
+        return;
+      }
+
+      try {
+        setPosting(true);
+        setError("");
+
+        await createThought(
+          cleanContent
+        );
+
+        // Reset composer
+        setContent("");
+        setImprovedText("");
+
+        // Refresh home feed
+        if (onCreated) {
+          await onCreated();
+        }
+      } catch (error) {
+        console.error(
+          "Create thought error:",
+          error
+        );
+
+        setError(
+          error.message ||
+            "Unable to publish thought"
+        );
+      } finally {
+        setPosting(false);
+      }
+    };
 
 
   // ==========================================
-  // KEYBOARD
+  // KEYBOARD SHORTCUT
   // ==========================================
 
-  const handleKeyDown = (event) => {
+  const handleKeyDown = (
+    event
+  ) => {
     if (
       event.key === "Enter" &&
       (event.ctrlKey ||
@@ -180,16 +216,20 @@ function ThoughtComposer({
 
 
   // ==========================================
-  // TEXT CHANGE
+  // CONTENT CHANGE
   // ==========================================
 
   const handleContentChange = (
     event
   ) => {
-    setContent(
-      event.target.value
-    );
+    const value =
+      event.target.value;
 
+    setContent(value);
+
+    // Once user changes the original
+    // thought, old AI suggestion is no
+    // longer relevant.
     if (improvedText) {
       setImprovedText("");
     }
@@ -198,6 +238,29 @@ function ThoughtComposer({
       setError("");
     }
   };
+
+
+  // ==========================================
+  // CHARACTER DATA
+  // ==========================================
+
+  const characterCount =
+    content.length;
+
+  const remaining =
+    1000 - characterCount;
+
+  const nearLimit =
+    remaining <= 100;
+
+  const canImprove =
+    content.trim().length > 0 &&
+    !improving &&
+    !posting;
+
+  const canPost =
+    content.trim().length > 0 &&
+    !posting;
 
 
   return (
@@ -209,6 +272,7 @@ function ThoughtComposer({
         bg-white
         p-4
         shadow-sm
+        transition-colors
 
         dark:border-[#352e3a]
         dark:bg-[#1b191f]
@@ -221,7 +285,13 @@ function ThoughtComposer({
           HEADER
       ====================================== */}
 
-      <div className="flex items-center gap-2">
+      <div
+        className="
+          flex
+          items-center
+          gap-2
+        "
+      >
 
         <div
           className="
@@ -238,11 +308,15 @@ function ThoughtComposer({
             dark:text-[#c5b3d0]
           "
         >
-          <Sparkles size={15} />
+          <Sparkles
+            size={15}
+            strokeWidth={1.8}
+          />
         </div>
 
 
-        <div>
+        <div className="min-w-0">
+
           <p
             className="
               text-xs
@@ -266,6 +340,7 @@ function ThoughtComposer({
           >
             No identity needed.
           </p>
+
         </div>
 
       </div>
@@ -280,7 +355,9 @@ function ThoughtComposer({
         onChange={
           handleContentChange
         }
-        onKeyDown={handleKeyDown}
+        onKeyDown={
+          handleKeyDown
+        }
         rows={5}
         maxLength={1000}
         disabled={posting}
@@ -340,6 +417,8 @@ function ThoughtComposer({
           "
         >
 
+          {/* Suggestion header */}
+
           <div
             className="
               flex
@@ -357,6 +436,7 @@ function ThoughtComposer({
                 gap-2
               "
             >
+
               <Sparkles
                 size={14}
                 className="
@@ -378,6 +458,7 @@ function ThoughtComposer({
               >
                 Suggested version
               </p>
+
             </div>
 
 
@@ -399,13 +480,19 @@ function ThoughtComposer({
 
                 dark:hover:bg-white/5
               "
-              aria-label="Dismiss suggestion"
+              aria-label="Dismiss AI suggestion"
+              title="Dismiss"
             >
-              <X size={14} />
+              <X
+                size={14}
+                strokeWidth={2}
+              />
             </button>
 
           </div>
 
+
+          {/* Suggested text */}
 
           <p
             className="
@@ -423,6 +510,8 @@ function ThoughtComposer({
           </p>
 
 
+          {/* Action buttons */}
+
           <div
             className="
               mt-4
@@ -439,6 +528,7 @@ function ThoughtComposer({
               onClick={
                 handleUseImproved
               }
+              disabled={posting}
               className="
                 inline-flex
                 items-center
@@ -452,16 +542,25 @@ function ThoughtComposer({
                 font-semibold
                 text-white
                 transition
+
                 hover:bg-[#40344a]
+
+                disabled:cursor-not-allowed
+                disabled:opacity-40
 
                 dark:bg-[#eee8ff]
                 dark:text-[#302839]
                 dark:hover:bg-white
               "
             >
-              <Check size={14} />
+
+              <Check
+                size={14}
+                strokeWidth={2.2}
+              />
 
               Use this version
+
             </button>
 
 
@@ -470,6 +569,7 @@ function ThoughtComposer({
               onClick={
                 handleDismissImproved
               }
+              disabled={posting}
               className="
                 inline-flex
                 items-center
@@ -484,7 +584,11 @@ function ThoughtComposer({
                 font-semibold
                 text-[#665b6b]
                 transition
+
                 hover:bg-white
+
+                disabled:cursor-not-allowed
+                disabled:opacity-40
 
                 dark:border-[#463b4c]
                 dark:text-[#bdb1c5]
@@ -495,6 +599,7 @@ function ThoughtComposer({
             </button>
 
           </div>
+
         </div>
       )}
 
@@ -508,12 +613,16 @@ function ThoughtComposer({
           className="
             mt-3
             rounded-[14px]
+            border
+            border-red-100
             bg-red-50
             px-3
             py-2.5
             text-xs
+            leading-5
             text-red-600
 
+            dark:border-red-900/30
             dark:bg-red-950/20
             dark:text-red-400
           "
@@ -540,31 +649,37 @@ function ThoughtComposer({
         "
       >
 
+        {/* Left controls */}
+
         <div
           className="
             flex
+            flex-wrap
             items-center
             gap-3
           "
         >
 
+          {/* Character count */}
+
           <span
             className={`
               text-[10px]
+
               ${
-                content.length >= 900
-                  ? "text-red-500"
+                nearLimit
+                  ? "font-semibold text-red-500"
                   : "text-[#9b919f]"
               }
 
               dark:text-[#898090]
             `}
           >
-            {content.length}/1000
+            {characterCount}/1000
           </span>
 
 
-          {/* AI BUTTON */}
+          {/* AI button */}
 
           <button
             type="button"
@@ -572,13 +687,12 @@ function ThoughtComposer({
               handleImprove
             }
             disabled={
-              improving ||
-              posting ||
-              !content.trim()
+              !canImprove
             }
             className="
               inline-flex
               items-center
+              justify-center
               gap-1.5
               rounded-full
               border
@@ -592,6 +706,7 @@ function ThoughtComposer({
               transition
 
               hover:bg-[#f2ebf5]
+              hover:text-[#645570]
 
               disabled:cursor-not-allowed
               disabled:opacity-40
@@ -616,6 +731,7 @@ function ThoughtComposer({
               <>
                 <Sparkles
                   size={13}
+                  strokeWidth={1.9}
                 />
 
                 Improve
@@ -627,7 +743,7 @@ function ThoughtComposer({
         </div>
 
 
-        {/* POST BUTTON */}
+        {/* Post button */}
 
         <button
           type="button"
@@ -635,11 +751,11 @@ function ThoughtComposer({
             handleSubmit
           }
           disabled={
-            posting ||
-            !content.trim()
+            !canPost
           }
           className="
             inline-flex
+            w-full
             items-center
             justify-center
             gap-2
@@ -651,6 +767,7 @@ function ThoughtComposer({
             font-semibold
             text-white
             transition
+
             hover:bg-[#40334a]
 
             disabled:cursor-not-allowed
@@ -659,6 +776,8 @@ function ThoughtComposer({
             dark:bg-[#eee8ff]
             dark:text-[#302839]
             dark:hover:bg-white
+
+            sm:w-auto
           "
         >
 
@@ -673,7 +792,10 @@ function ThoughtComposer({
             </>
           ) : (
             <>
-              <Send size={14} />
+              <Send
+                size={14}
+                strokeWidth={1.9}
+              />
 
               Post thought
             </>
@@ -683,6 +805,10 @@ function ThoughtComposer({
 
       </div>
 
+
+      {/* ======================================
+          KEYBOARD TIP
+      ====================================== */}
 
       <p
         className="

@@ -1,14 +1,29 @@
-const express = require("express");
+const express =
+  require("express");
 
 const authMiddleware =
   require("../middleware/authMiddleware");
 
 const {
   improveThought,
-} = require("../controllers/aiController");
+  aiHealth,
+} =
+  require("../controllers/aiController");
+
 
 const router =
   express.Router();
+
+
+// ==========================================
+// AI HEALTH
+// ==========================================
+
+router.get(
+  "/health",
+  authMiddleware,
+  aiHealth
+);
 
 
 // ==========================================
@@ -22,4 +37,5 @@ router.post(
 );
 
 
-module.exports = router;
+module.exports =
+  router;

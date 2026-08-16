@@ -7,17 +7,13 @@ import {
 import {
   useCallback,
   useEffect,
-  useMemo,
+  useRef,
   useState,
 } from "react";
 
 import {
   useSearchParams,
 } from "react-router-dom";
-
-import {
-  useVirtualizer,
-} from "@tanstack/react-virtual";
 
 import ThoughtComposer from "../components/ThoughtComposer";
 import ThoughtCard from "../components/ThoughtCard";
@@ -36,8 +32,7 @@ import {
 
 const FEED_LIMIT = 10;
 
-const NEW_THOUGHT_POLL_MS =
-  15000;
+const NEW_THOUGHT_POLL_MS = 15000;
 
 
 function Home() {
@@ -147,6 +142,14 @@ function Home() {
 
 
   // ==========================================
+  // INFINITE SCROLL SENTINEL
+  // ==========================================
+
+  const loadMoreRef =
+    useRef(null);
+
+
+  // ==========================================
   // DEEP LINK
   // ==========================================
 
@@ -176,109 +179,116 @@ function Home() {
   // ==========================================
 
   const loadInitialThoughts =
-    useCallback(async () => {
-      try {
-        setLoading(true);
-        setError("");
+    useCallback(
+      async () => {
+        try {
+          setLoading(true);
+          setError("");
 
-        const data =
-          await getThoughts({
-            limit: FEED_LIMIT,
-          });
+          const data =
+            await getThoughts({
+              limit:
+                FEED_LIMIT,
+            });
 
-        setThoughts(
-          data.thoughts || []
-        );
+          setThoughts(
+            data.thoughts || []
+          );
 
-        setNextCursor(
-          data.nextCursor ||
-            null
-        );
+          setNextCursor(
+            data.nextCursor ||
+              null
+          );
 
-        setHasMore(
-          Boolean(
-            data.hasMore
-          )
-        );
-      } catch (error) {
-        console.error(
-          "Initial thoughts error:",
-          error
-        );
+          setHasMore(
+            Boolean(
+              data.hasMore
+            )
+          );
+        } catch (error) {
+          console.error(
+            "Initial thoughts error:",
+            error
+          );
 
-        setError(
-          error.message ||
-            "Unable to load thoughts"
-        );
-      } finally {
-        setLoading(false);
-      }
-    }, []);
+          setError(
+            error.message ||
+              "Unable to load thoughts"
+          );
+        } finally {
+          setLoading(false);
+        }
+      },
+      []
+    );
 
 
   // ==========================================
-  // LOAD MORE
+  // LOAD MORE FOR YOU
   // ==========================================
 
   const loadMoreThoughts =
-    useCallback(async () => {
-      if (
-        loading ||
-        loadingMore ||
-        !hasMore ||
-        !nextCursor
-      ) {
-        return;
-      }
+    useCallback(
+      async () => {
+        if (
+          loading ||
+          loadingMore ||
+          !hasMore ||
+          !nextCursor
+        ) {
+          return;
+        }
 
-      try {
-        setLoadingMore(true);
+        try {
+          setLoadingMore(true);
 
-        const data =
-          await getThoughts({
-            cursor:
-              nextCursor,
+          const data =
+            await getThoughts({
+              cursor:
+                nextCursor,
 
-            limit:
-              FEED_LIMIT,
-          });
+              limit:
+                FEED_LIMIT,
+            });
 
-        setThoughts(
-          (current) => [
-            ...current,
-            ...(data.thoughts || []),
-          ]
-        );
+          setThoughts(
+            (current) => [
+              ...current,
+              ...(data.thoughts || []),
+            ]
+          );
 
-        setNextCursor(
-          data.nextCursor ||
-            null
-        );
+          setNextCursor(
+            data.nextCursor ||
+              null
+          );
 
-        setHasMore(
-          Boolean(
-            data.hasMore
-          )
-        );
-      } catch (error) {
-        console.error(
-          "Load more thoughts error:",
-          error
-        );
+          setHasMore(
+            Boolean(
+              data.hasMore
+            )
+          );
+        } catch (error) {
+          console.error(
+            "Load more thoughts error:",
+            error
+          );
 
-        setError(
-          error.message ||
-            "Unable to load more thoughts"
-        );
-      } finally {
-        setLoadingMore(false);
-      }
-    }, [
-      loading,
-      loadingMore,
-      hasMore,
-      nextCursor,
-    ]);
+          setError(
+            error.message ||
+              "Unable to load more thoughts"
+          );
+        } finally {
+          setLoadingMore(false);
+        }
+      },
+      [
+        loading,
+        loadingMore,
+        hasMore,
+        nextCursor,
+      ]
+    );
 
 
   // ==========================================
@@ -286,50 +296,53 @@ function Home() {
   // ==========================================
 
   const loadInitialFollowing =
-    useCallback(async () => {
-      try {
-        setFollowingLoading(
-          true
-        );
+    useCallback(
+      async () => {
+        try {
+          setFollowingLoading(
+            true
+          );
 
-        setFollowingError("");
+          setFollowingError("");
 
-        const data =
-          await getFollowingFeed({
-            limit:
-              FEED_LIMIT,
-          });
+          const data =
+            await getFollowingFeed({
+              limit:
+                FEED_LIMIT,
+            });
 
-        setFollowingThoughts(
-          data.thoughts || []
-        );
+          setFollowingThoughts(
+            data.thoughts || []
+          );
 
-        setFollowingCursor(
-          data.nextCursor ||
-            null
-        );
+          setFollowingCursor(
+            data.nextCursor ||
+              null
+          );
 
-        setFollowingHasMore(
-          Boolean(
-            data.hasMore
-          )
-        );
-      } catch (error) {
-        console.error(
-          "Initial following error:",
-          error
-        );
+          setFollowingHasMore(
+            Boolean(
+              data.hasMore
+            )
+          );
+        } catch (error) {
+          console.error(
+            "Initial following error:",
+            error
+          );
 
-        setFollowingError(
-          error.message ||
-            "Unable to load following feed"
-        );
-      } finally {
-        setFollowingLoading(
-          false
-        );
-      }
-    }, []);
+          setFollowingError(
+            error.message ||
+              "Unable to load following feed"
+          );
+        } finally {
+          setFollowingLoading(
+            false
+          );
+        }
+      },
+      []
+    );
 
 
   // ==========================================
@@ -337,68 +350,71 @@ function Home() {
   // ==========================================
 
   const loadMoreFollowing =
-    useCallback(async () => {
-      if (
-        followingLoading ||
-        followingLoadingMore ||
-        !followingHasMore ||
-        !followingCursor
-      ) {
-        return;
-      }
+    useCallback(
+      async () => {
+        if (
+          followingLoading ||
+          followingLoadingMore ||
+          !followingHasMore ||
+          !followingCursor
+        ) {
+          return;
+        }
 
-      try {
-        setFollowingLoadingMore(
-          true
-        );
+        try {
+          setFollowingLoadingMore(
+            true
+          );
 
-        const data =
-          await getFollowingFeed({
-            cursor:
-              followingCursor,
+          const data =
+            await getFollowingFeed({
+              cursor:
+                followingCursor,
 
-            limit:
-              FEED_LIMIT,
-          });
+              limit:
+                FEED_LIMIT,
+            });
 
-        setFollowingThoughts(
-          (current) => [
-            ...current,
-            ...(data.thoughts || []),
-          ]
-        );
+          setFollowingThoughts(
+            (current) => [
+              ...current,
+              ...(data.thoughts || []),
+            ]
+          );
 
-        setFollowingCursor(
-          data.nextCursor ||
-            null
-        );
+          setFollowingCursor(
+            data.nextCursor ||
+              null
+          );
 
-        setFollowingHasMore(
-          Boolean(
-            data.hasMore
-          )
-        );
-      } catch (error) {
-        console.error(
-          "Load more following error:",
-          error
-        );
+          setFollowingHasMore(
+            Boolean(
+              data.hasMore
+            )
+          );
+        } catch (error) {
+          console.error(
+            "Load more following error:",
+            error
+          );
 
-        setFollowingError(
-          error.message ||
-            "Unable to load more thoughts"
-        );
-      } finally {
-        setFollowingLoadingMore(
-          false
-        );
-      }
-    }, [
-      followingLoading,
-      followingLoadingMore,
-      followingHasMore,
-      followingCursor,
-    ]);
+          setFollowingError(
+            error.message ||
+              "Unable to load more thoughts"
+          );
+        } finally {
+          setFollowingLoadingMore(
+            false
+          );
+        }
+      },
+      [
+        followingLoading,
+        followingLoadingMore,
+        followingHasMore,
+        followingCursor,
+      ]
+    );
 
 
   // ==========================================
@@ -438,25 +454,62 @@ function Home() {
 
 
   // ==========================================
-  // VIRTUALIZER
+  // INFINITE SCROLL
   // ==========================================
 
-  const virtualizer =
-    useVirtualizer({
-      count:
-        activeThoughts.length,
+  useEffect(() => {
+    const element =
+      loadMoreRef.current;
 
-      getScrollElement: () =>
-        null,
+    if (!element) {
+      return;
+    }
 
-      estimateSize: () => 220,
+    if (!activeHasMore) {
+      return;
+    }
 
-      overscan: 4,
+    const observer =
+      new IntersectionObserver(
+        (entries) => {
+          const entry =
+            entries[0];
 
-      // We are using window scrolling.
-      useAnimationFrameWithResizeObserver:
-        true,
-    });
+          if (
+            !entry?.isIntersecting
+          ) {
+            return;
+          }
+
+          if (
+            feedMode === "forYou"
+          ) {
+            loadMoreThoughts();
+          } else {
+            loadMoreFollowing();
+          }
+        },
+        {
+          root: null,
+          rootMargin:
+            "600px 0px",
+          threshold: 0,
+        }
+      );
+
+    observer.observe(
+      element
+    );
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [
+    feedMode,
+    activeHasMore,
+    loadMoreThoughts,
+    loadMoreFollowing,
+  ]);
 
 
   // ==========================================
@@ -464,101 +517,115 @@ function Home() {
   // ==========================================
 
   const checkForNewThoughts =
-    useCallback(async () => {
-      if (
-        feedMode !==
-        "forYou"
-      ) {
-        return;
-      }
-
-      if (
-        thoughts.length ===
-        0
-      ) {
-        return;
-      }
-
-      if (checkingForNew) {
-        return;
-      }
-
-      try {
-        setCheckingForNew(
-          true
-        );
-
-        // First thought is the newest
-        // because the API sorts newest first.
-        const newestThought =
-          thoughts[0];
-
-        const newestCursor =
-          Buffer.from(
-            JSON.stringify({
-              createdAt:
-                newestThought.createdAt,
-
-              id:
-                newestThought.id,
-            })
-          ).toString(
-            "base64"
-          );
-
-        const data =
-          await getNewThoughts(
-            newestCursor
-          );
+    useCallback(
+      async () => {
+        if (
+          feedMode !==
+          "forYou"
+        ) {
+          return;
+        }
 
         if (
-          data.thoughts?.length
+          thoughts.length ===
+          0
         ) {
-          setNewThoughts(
-            (current) => {
-              const existingIds =
-                new Set(
-                  current.map(
-                    (item) =>
-                      item.id
-                  )
+          return;
+        }
+
+        if (checkingForNew) {
+          return;
+        }
+
+        try {
+          setCheckingForNew(
+            true
+          );
+
+          // First thought is newest
+          // because API sorts newest first.
+          const newestThought =
+            thoughts[0];
+
+          const newestCursor =
+            typeof Buffer !==
+              "undefined"
+              ? Buffer.from(
+                  JSON.stringify({
+                    createdAt:
+                      newestThought.createdAt,
+
+                    id:
+                      newestThought.id,
+                  })
+                ).toString(
+                  "base64"
+                )
+              : btoa(
+                  JSON.stringify({
+                    createdAt:
+                      newestThought.createdAt,
+
+                    id:
+                      newestThought.id,
+                  })
                 );
 
-              const incoming =
-                data.thoughts.filter(
-                  (item) =>
-                    !existingIds.has(
-                      item.id
-                    ) &&
-                    !thoughts.some(
-                      (existing) =>
-                        existing.id ===
+          const data =
+            await getNewThoughts(
+              newestCursor
+            );
+
+          if (
+            data.thoughts?.length
+          ) {
+            setNewThoughts(
+              (current) => {
+                const existingIds =
+                  new Set(
+                    current.map(
+                      (item) =>
                         item.id
                     )
-                );
+                  );
 
-              return [
-                ...incoming,
-                ...current,
-              ];
-            }
+                const incoming =
+                  data.thoughts.filter(
+                    (item) =>
+                      !existingIds.has(
+                        item.id
+                      ) &&
+                      !thoughts.some(
+                        (existing) =>
+                          existing.id ===
+                          item.id
+                      )
+                  );
+
+                return [
+                  ...incoming,
+                  ...current,
+                ];
+              }
+            );
+          }
+        } catch (error) {
+          console.error(
+            "Check new thoughts error:",
+            error
+          );
+        } finally {
+          setCheckingForNew(
+            false
           );
         }
-      } catch (error) {
-        console.error(
-          "Check new thoughts error:",
-          error
-        );
-      } finally {
-        setCheckingForNew(
-          false
-        );
-      }
-    }, [
-      feedMode,
-      thoughts,
-      checkingForNew,
-    ]);
+      },
+      [
+        feedMode,
+        thoughts,
+        checkingForNew,
+      ]
+    );
 
 
   // ==========================================
@@ -614,8 +681,6 @@ function Home() {
         return;
       }
 
-      // Capture current document position
-      // before changing the feed.
       const previousHeight =
         document.documentElement
           .scrollHeight;
@@ -635,8 +700,6 @@ function Home() {
 
       setNewThoughts([]);
 
-      // Preserve reading position after
-      // the new cards are inserted above.
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           const newHeight =
@@ -653,7 +716,7 @@ function Home() {
               heightDifference,
 
             behavior:
-              "instant",
+              "auto",
           });
         });
       });
@@ -796,87 +859,98 @@ function Home() {
   // DELETE
   // ==========================================
 
-  const handleDeleted = (
-    id
-  ) => {
-    setThoughts(
-      (current) =>
-        current.filter(
-          (thought) =>
-            thought.id !==
-            id
-        )
-    );
+  const handleDeleted =
+    (id) => {
+      setThoughts(
+        (current) =>
+          current.filter(
+            (thought) =>
+              thought.id !==
+              id
+          )
+      );
 
-    setFollowingThoughts(
-      (current) =>
-        current.filter(
-          (thought) =>
-            thought.id !==
-            id
-        )
-    );
+      setFollowingThoughts(
+        (current) =>
+          current.filter(
+            (thought) =>
+              thought.id !==
+              id
+          )
+      );
 
-    setNewThoughts(
-      (current) =>
-        current.filter(
-          (thought) =>
-            thought.id !==
-            id
-        )
-    );
-  };
+      setNewThoughts(
+        (current) =>
+          current.filter(
+            (thought) =>
+              thought.id !==
+              id
+          )
+      );
+
+      if (
+        openedThoughtId ===
+        id
+      ) {
+        setOpenedThoughtId(
+          null
+        );
+
+        setOpenedThought(
+          null
+        );
+      }
+    };
 
 
   // ==========================================
   // UPDATE
   // ==========================================
 
-  const handleUpdated = (
-    updatedThought
-  ) => {
-    setThoughts(
-      (current) =>
-        current.map(
-          (thought) =>
-            thought.id ===
-            updatedThought.id
-              ? updatedThought
-              : thought
-        )
-    );
-
-    setFollowingThoughts(
-      (current) =>
-        current.map(
-          (thought) =>
-            thought.id ===
-            updatedThought.id
-              ? updatedThought
-              : thought
-        )
-    );
-
-    setNewThoughts(
-      (current) =>
-        current.map(
-          (thought) =>
-            thought.id ===
-            updatedThought.id
-              ? updatedThought
-              : thought
-        )
-    );
-
-    if (
-      openedThoughtId ===
-      updatedThought.id
-    ) {
-      setOpenedThought(
-        updatedThought
+  const handleUpdated =
+    (updatedThought) => {
+      setThoughts(
+        (current) =>
+          current.map(
+            (thought) =>
+              thought.id ===
+              updatedThought.id
+                ? updatedThought
+                : thought
+          )
       );
-    }
-  };
+
+      setFollowingThoughts(
+        (current) =>
+          current.map(
+            (thought) =>
+              thought.id ===
+              updatedThought.id
+                ? updatedThought
+                : thought
+          )
+      );
+
+      setNewThoughts(
+        (current) =>
+          current.map(
+            (thought) =>
+              thought.id ===
+              updatedThought.id
+                ? updatedThought
+                : thought
+          )
+      );
+
+      if (
+        openedThoughtId ===
+        updatedThought.id
+      ) {
+        setOpenedThought(
+          updatedThought
+        );
+      }
+    };
 
 
   // ==========================================
@@ -920,6 +994,10 @@ function Home() {
     };
 
 
+  // ==========================================
+  // RENDER
+  // ==========================================
+
   return (
     <>
       <div
@@ -935,7 +1013,11 @@ function Home() {
             HERO
         ==================================== */}
 
-        <section className="pt-1">
+        <section
+          className="
+            pt-1
+          "
+        >
 
           <div
             className="
@@ -945,17 +1027,19 @@ function Home() {
               text-[10px]
               font-bold
               tracking-[0.18em]
-              text-[#96899f]
               uppercase
+              text-[#96899f]
 
               dark:text-[#a296ab]
             "
           >
+
             <Sparkles
               size={13}
             />
 
             a place for thoughts
+
           </div>
 
 
@@ -1038,6 +1122,7 @@ function Home() {
               >
                 Thoughts
               </p>
+
 
               <p
                 className="
@@ -1159,7 +1244,6 @@ function Home() {
                 text-[#675675]
                 shadow-sm
                 transition
-
                 hover:bg-[#ede4f1]
 
                 dark:border-[#493a52]
@@ -1168,6 +1252,7 @@ function Home() {
                 dark:hover:bg-[#332938]
               "
             >
+
               <Zap
                 size={15}
                 className="
@@ -1187,6 +1272,7 @@ function Home() {
               >
                 · tap to reveal
               </span>
+
             </button>
           )}
 
@@ -1301,7 +1387,11 @@ function Home() {
           {!activeLoading &&
             activeThoughts.length >
               0 && (
-              <div className="space-y-4">
+              <div
+                className="
+                  space-y-4
+                "
+              >
 
                 {activeThoughts.map(
                   (thought) => (
@@ -1312,11 +1402,9 @@ function Home() {
                       thought={
                         thought
                       }
-
                       onDeleted={
                         handleDeleted
                       }
-
                       onUpdated={
                         handleUpdated
                       }
@@ -1329,14 +1417,81 @@ function Home() {
 
 
           {/* ====================================
-              AUTO LOAD
+              EMPTY STATE
+          ==================================== */}
+
+          {!activeLoading &&
+            activeThoughts.length ===
+              0 &&
+            !activeError && (
+              <div
+                className="
+                  rounded-[26px]
+                  border
+                  border-dashed
+                  border-[#ded5e3]
+                  bg-white
+                  p-10
+                  text-center
+
+                  dark:border-[#39313f]
+                  dark:bg-[#1b191f]
+                "
+              >
+
+                <div
+                  className="
+                    mx-auto
+                    grid
+                    h-12
+                    w-12
+                    place-items-center
+                    rounded-full
+                    bg-[#eee7f4]
+                    text-[#806d8f]
+
+                    dark:bg-[#292230]
+                    dark:text-[#c5b3d1]
+                  "
+                >
+                  <Compass
+                    size={20}
+                  />
+                </div>
+
+
+                <p
+                  className="
+                    mt-4
+                    text-sm
+                    font-semibold
+                    text-[#403747]
+
+                    dark:text-[#eee7f2]
+                  "
+                >
+                  {feedMode ===
+                  "following"
+                    ? "You're not following anyone yet."
+                    : "No thoughts to show right now."}
+                </p>
+
+              </div>
+            )}
+
+
+          {/* ====================================
+              AUTO LOAD SENTINEL
           ==================================== */}
 
           {activeHasMore && (
             <div
+              ref={
+                loadMoreRef
+              }
               className="
                 flex
-                min-h-[90px]
+                min-h-[110px]
                 items-center
                 justify-center
               "
@@ -1382,7 +1537,7 @@ function Home() {
                     dark:text-[#746a79]
                   "
                 >
-                  Keep scrolling
+                  Loading more...
                 </span>
               )}
 
@@ -1403,6 +1558,7 @@ function Home() {
                   text-center
                 "
               >
+
                 <span
                   className="
                     text-[10px]
@@ -1415,6 +1571,7 @@ function Home() {
                   You've reached the quieter end
                   of the stream.
                 </span>
+
               </div>
             )}
 
@@ -1440,6 +1597,7 @@ function Home() {
             backdrop-blur-sm
           "
         >
+
           <div
             className="
               rounded-2xl
@@ -1460,6 +1618,7 @@ function Home() {
           >
             Opening conversation...
           </div>
+
         </div>
       )}
 
@@ -1492,12 +1651,16 @@ function Home() {
             dark:text-red-400
           "
         >
+
           {deepLinkError}
+
 
           <button
             type="button"
             onClick={() => {
-              setDeepLinkError("");
+              setDeepLinkError(
+                ""
+              );
 
               setSearchParams({});
             }}
@@ -1509,6 +1672,7 @@ function Home() {
           >
             Close
           </button>
+
         </div>
       )}
 
@@ -1531,5 +1695,6 @@ function Home() {
     </>
   );
 }
+
 
 export default Home;

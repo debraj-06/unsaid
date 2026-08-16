@@ -1,12 +1,16 @@
-import { apiFetch } from "./api";
+import {
+  apiFetch,
+} from "./api";
 
 
 // ==========================================
-// GET MY PROFILE
+// MY PROFILE
 // ==========================================
 
 export function getMyProfile() {
-  return apiFetch("/users/me");
+  return apiFetch(
+    "/users/me"
+  );
 }
 
 
@@ -42,7 +46,9 @@ export function changePassword(
     {
       method: "PATCH",
 
-      body: JSON.stringify(data),
+      body: JSON.stringify(
+        data
+      ),
     }
   );
 }
@@ -71,6 +77,39 @@ export function getMyBookmarks() {
 
 
 // ==========================================
+// MY FOLLOWERS
+// ==========================================
+
+export function getMyFollowers() {
+  return apiFetch(
+    "/users/me/followers"
+  );
+}
+
+
+// ==========================================
+// MY FOLLOWING
+// ==========================================
+
+export function getMyFollowing() {
+  return apiFetch(
+    "/users/me/following"
+  );
+}
+
+
+// ==========================================
+// FOLLOWING FEED
+// ==========================================
+
+export function getFollowingFeed() {
+  return apiFetch(
+    "/users/me/following-feed"
+  );
+}
+
+
+// ==========================================
 // PUBLIC PROFILE
 // ==========================================
 
@@ -78,7 +117,39 @@ export function getPublicProfile(
   username
 ) {
   return apiFetch(
-    `/users/${username}`
+    `/users/${encodeURIComponent(
+      username
+    )}`
+  );
+}
+
+
+// ==========================================
+// PUBLIC FOLLOWERS
+// ==========================================
+
+export function getUserFollowers(
+  username
+) {
+  return apiFetch(
+    `/users/${encodeURIComponent(
+      username
+    )}/followers`
+  );
+}
+
+
+// ==========================================
+// PUBLIC FOLLOWING
+// ==========================================
+
+export function getUserFollowing(
+  username
+) {
+  return apiFetch(
+    `/users/${encodeURIComponent(
+      username
+    )}/following`
   );
 }
 
@@ -91,38 +162,11 @@ export function toggleFollow(
   username
 ) {
   return apiFetch(
-    `/users/${username}/follow`,
+    `/users/${encodeURIComponent(
+      username
+    )}/follow`,
     {
       method: "PATCH",
     }
-  );
-}
-
-
-// ==========================================
-// FOLLOWING FEED - INFINITE
-// ==========================================
-
-export function getFollowingFeed({
-  cursor = null,
-  limit = 10,
-} = {}) {
-  const params =
-    new URLSearchParams();
-
-  params.set(
-    "limit",
-    String(limit)
-  );
-
-  if (cursor) {
-    params.set(
-      "cursor",
-      cursor
-    );
-  }
-
-  return apiFetch(
-    `/users/me/following-feed?${params.toString()}`
   );
 }

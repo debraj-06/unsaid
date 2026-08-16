@@ -143,3 +143,10 @@ ai-service/cache/
 *.pth
 *.ckpt
 *.onnx
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Server environment
+server/.env
