@@ -2,36 +2,69 @@ import { apiFetch } from "./api";
 
 
 // ==========================================
-// GET NOTIFICATIONS
+// GET COMMENTS
 // ==========================================
 
-export function getNotifications() {
+export function getComments(
+  thoughtId
+) {
   return apiFetch(
-    "/api/notifications"
+    `/api/comments/${thoughtId}`
   );
 }
 
 
 // ==========================================
-// GET UNREAD COUNT
+// CREATE COMMENT / REPLY
 // ==========================================
 
-export function getUnreadNotificationCount() {
+export function createComment(
+  thoughtId,
+  content
+) {
   return apiFetch(
-    "/api/notifications/unread-count"
+    `/api/comments/${thoughtId}`,
+    {
+      method: "POST",
+
+      body: JSON.stringify({
+        content,
+      }),
+    }
   );
 }
 
 
 // ==========================================
-// MARK ONE READ
+// UPDATE COMMENT
 // ==========================================
 
-export function markNotificationRead(
+export function updateComment(
+  id,
+  content
+) {
+  return apiFetch(
+    `/api/comments/${id}`,
+    {
+      method: "PATCH",
+
+      body: JSON.stringify({
+        content,
+      }),
+    }
+  );
+}
+
+
+// ==========================================
+// LIKE / UNLIKE COMMENT
+// ==========================================
+
+export function toggleCommentLike(
   id
 ) {
   return apiFetch(
-    `/api/notifications/${id}/read`,
+    `/api/comments/${id}/like`,
     {
       method: "PATCH",
     }
@@ -40,42 +73,14 @@ export function markNotificationRead(
 
 
 // ==========================================
-// MARK ALL READ
+// DELETE COMMENT
 // ==========================================
 
-export function markAllNotificationsRead() {
-  return apiFetch(
-    "/api/notifications/read-all",
-    {
-      method: "PATCH",
-    }
-  );
-}
-
-
-// ==========================================
-// DELETE ONE
-// ==========================================
-
-export function deleteNotification(
+export function deleteComment(
   id
 ) {
   return apiFetch(
-    `/api/notifications/${id}`,
-    {
-      method: "DELETE",
-    }
-  );
-}
-
-
-// ==========================================
-// DELETE ALL
-// ==========================================
-
-export function deleteAllNotifications() {
-  return apiFetch(
-    "/api/notifications/all",
+    `/api/comments/${id}`,
     {
       method: "DELETE",
     }
