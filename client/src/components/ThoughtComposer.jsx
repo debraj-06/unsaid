@@ -55,7 +55,7 @@ function ThoughtComposer({
 
 
   // ==========================================
-  // MENTIONS
+  // MENTION STATE
   // ==========================================
 
   const [
@@ -92,23 +92,33 @@ function ThoughtComposer({
   // ==========================================
 
   useEffect(() => {
-    if (
-      !mentionOpen
-    ) {
+    if (!mentionOpen) {
       setMentionUsers([]);
+      setMentionLoading(
+        false
+      );
       return;
     }
 
-    if (
-      mentionQuery.length ===
-      0
-    ) {
+    const cleanQuery =
+      String(
+        mentionQuery || ""
+      )
+        .replace(
+          /^@/,
+          ""
+        )
+        .trim();
+
+    if (!cleanQuery) {
       setMentionUsers([]);
+      setMentionLoading(
+        false
+      );
       return;
     }
 
-    let cancelled =
-      false;
+    let cancelled = false;
 
     const timeout =
       setTimeout(
@@ -120,7 +130,7 @@ function ThoughtComposer({
 
             const data =
               await searchMentionUsers(
-                mentionQuery
+                cleanQuery
               );
 
             if (
@@ -149,6 +159,11 @@ function ThoughtComposer({
             );
 
             setMentionUsers([]);
+
+            setError(
+              error.message ||
+                "Unable to search users"
+            );
           } finally {
             if (
               !cancelled
@@ -159,12 +174,11 @@ function ThoughtComposer({
             }
           }
         },
-        150
+        200
       );
 
     return () => {
-      cancelled =
-        true;
+      cancelled = true;
 
       clearTimeout(
         timeout
@@ -177,7 +191,7 @@ function ThoughtComposer({
 
 
   // ==========================================
-  // DETECT @ MENTION
+  // DETECT CURRENT @ MENTION
   // ==========================================
 
   const detectMention =
@@ -294,7 +308,7 @@ function ThoughtComposer({
 
 
   // ==========================================
-  // INSERT MENTION
+  // SELECT USER
   // ==========================================
 
   const handleMentionSelect =
@@ -327,8 +341,7 @@ function ThoughtComposer({
         `@${person.username}`;
 
       const needsSpace =
-        after.length ===
-          0 ||
+        after.length === 0 ||
         !after.startsWith(
           " "
         );
@@ -403,7 +416,7 @@ function ThoughtComposer({
 
 
   // ==========================================
-  // AI IMPROVEMENT
+  // IMPROVE WITH AI
   // ==========================================
 
   const handleImprove =
@@ -481,9 +494,7 @@ function ThoughtComposer({
 
   const handleUseImproved =
     () => {
-      if (
-        !improvedText
-      ) {
+      if (!improvedText) {
         return;
       }
 
@@ -495,16 +506,14 @@ function ThoughtComposer({
         ""
       );
 
-      setError(
-        ""
-      );
+      setError("");
 
       closeMentions();
     };
 
 
   // ==========================================
-  // DISMISS AI VERSION
+  // DISMISS AI
   // ==========================================
 
   const handleDismissImproved =
@@ -554,13 +563,9 @@ function ThoughtComposer({
           cleanContent
         );
 
-        setContent(
-          ""
-        );
+        setContent("");
 
-        setImprovedText(
-          ""
-        );
+        setImprovedText("");
 
         closeMentions();
 
@@ -637,7 +642,7 @@ function ThoughtComposer({
 
 
   // ==========================================
-  // CHARACTER DATA
+  // COUNTERS
   // ==========================================
 
   const characterCount =
@@ -671,7 +676,6 @@ function ThoughtComposer({
         bg-white
         p-4
         shadow-sm
-        transition-colors
 
         dark:border-[#352e3a]
         dark:bg-[#1b191f]
@@ -714,12 +718,7 @@ function ThoughtComposer({
         </div>
 
 
-        <div
-          className="
-            min-w-0
-          "
-        >
-
+        <div>
           <p
             className="
               text-xs
@@ -732,7 +731,6 @@ function ThoughtComposer({
             Say it your way
           </p>
 
-
           <p
             className="
               mt-0.5
@@ -744,14 +742,13 @@ function ThoughtComposer({
           >
             No identity needed.
           </p>
-
         </div>
 
       </div>
 
 
       {/* ======================================
-          TEXTAREA + MENTION DROPDOWN
+          TEXTAREA
       ====================================== */}
 
       <div
@@ -810,7 +807,6 @@ function ThoughtComposer({
             leading-6
             text-[#403747]
             outline-none
-            transition
 
             placeholder:text-[#aaa0ae]
 
@@ -831,6 +827,10 @@ function ThoughtComposer({
           "
         />
 
+
+        {/* ====================================
+            MENTION DROPDOWN
+        ==================================== */}
 
         {mentionOpen && (
           <div
@@ -867,12 +867,14 @@ function ThoughtComposer({
                   dark:text-[#94899a]
                 "
               >
+
                 <LoaderCircle
                   size={14}
                   className="animate-spin"
                 />
 
                 Searching people...
+
               </div>
             ) : mentionUsers.length ===
               0 ? (
@@ -898,9 +900,7 @@ function ThoughtComposer({
               >
 
                 {mentionUsers.map(
-                  (
-                    person
-                  ) => (
+                  (person) => (
                     <button
                       key={
                         person.id
@@ -1047,14 +1047,12 @@ function ThoughtComposer({
               flex
               items-center
               justify-between
-              gap-3
             "
           >
 
             <div
               className="
                 flex
-                min-w-0
                 items-center
                 gap-2
               "
@@ -1063,13 +1061,11 @@ function ThoughtComposer({
               <Sparkles
                 size={14}
                 className="
-                  shrink-0
                   text-[#806d8f]
 
                   dark:text-[#c5b3d0]
                 "
               />
-
 
               <p
                 className="
@@ -1095,21 +1091,17 @@ function ThoughtComposer({
                 grid
                 h-7
                 w-7
-                shrink-0
                 place-items-center
                 rounded-full
                 text-[#8e8492]
-                transition
+
                 hover:bg-black/5
 
                 dark:hover:bg-white/5
               "
-              aria-label="Dismiss AI suggestion"
-              title="Dismiss"
             >
               <X
                 size={14}
-                strokeWidth={2}
               />
             </button>
 
@@ -1163,22 +1155,18 @@ function ThoughtComposer({
                 text-[11px]
                 font-semibold
                 text-white
-                transition
 
                 hover:bg-[#40344a]
 
-                disabled:cursor-not-allowed
                 disabled:opacity-40
 
                 dark:bg-[#eee8ff]
                 dark:text-[#302839]
-                dark:hover:bg-white
               "
             >
 
               <Check
                 size={14}
-                strokeWidth={2.2}
               />
 
               Use this version
@@ -1207,11 +1195,9 @@ function ThoughtComposer({
                 text-[11px]
                 font-semibold
                 text-[#665b6b]
-                transition
 
                 hover:bg-white
 
-                disabled:cursor-not-allowed
                 disabled:opacity-40
 
                 dark:border-[#463b4c]
@@ -1284,13 +1270,9 @@ function ThoughtComposer({
 
           <span
             className={
-              `
-              text-[10px] ${
-                nearLimit
-                  ? "font-semibold text-red-500"
-                  : "text-[#9b919f]"
-              }
-              `
+              nearLimit
+                ? "text-[10px] font-semibold text-red-500"
+                : "text-[10px] text-[#9b919f]"
             }
           >
             {characterCount}/1000
@@ -1319,18 +1301,14 @@ function ThoughtComposer({
               text-[10px]
               font-semibold
               text-[#776783]
-              transition
 
               hover:bg-[#f2ebf5]
-              hover:text-[#645570]
 
-              disabled:cursor-not-allowed
               disabled:opacity-40
 
               dark:border-[#463a4d]
               dark:bg-[#211b25]
               dark:text-[#c0afc8]
-              dark:hover:bg-[#2b2431]
             "
           >
 
@@ -1347,7 +1325,6 @@ function ThoughtComposer({
               <>
                 <Sparkles
                   size={13}
-                  strokeWidth={1.9}
                 />
 
                 Improve
@@ -1380,16 +1357,13 @@ function ThoughtComposer({
             text-xs
             font-semibold
             text-white
-            transition
 
             hover:bg-[#40334a]
 
-            disabled:cursor-not-allowed
             disabled:opacity-40
 
             dark:bg-[#eee8ff]
             dark:text-[#302839]
-            dark:hover:bg-white
 
             sm:w-auto
           "
@@ -1408,7 +1382,6 @@ function ThoughtComposer({
             <>
               <Send
                 size={14}
-                strokeWidth={1.9}
               />
 
               Post thought
@@ -1419,10 +1392,6 @@ function ThoughtComposer({
 
       </div>
 
-
-      {/* ======================================
-          KEYBOARD TIP
-      ====================================== */}
 
       <p
         className="
@@ -1441,5 +1410,6 @@ function ThoughtComposer({
     </section>
   );
 }
+
 
 export default ThoughtComposer;

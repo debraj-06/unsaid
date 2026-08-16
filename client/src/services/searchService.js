@@ -47,25 +47,40 @@ export function universalSearch(
 // MENTION SEARCH
 // ==========================================
 
-export function searchMentionUsers(
+export async function searchMentionUsers(
   query
 ) {
   const cleanQuery =
     String(
       query || ""
-    ).trim();
+    )
+      .replace(
+        /^@/,
+        ""
+      )
+      .trim();
 
   if (!cleanQuery) {
-    return Promise.resolve({
+    return {
       users: [],
-    });
+    };
   }
 
-  return apiFetch(
-    `/search/mentions?q=${encodeURIComponent(
-      cleanQuery
-    )}`
-  );
+  const data =
+    await apiFetch(
+      `/search/mentions?q=${encodeURIComponent(
+        cleanQuery
+      )}`
+    );
+
+  return {
+    users:
+      Array.isArray(
+        data?.users
+      )
+        ? data.users
+        : [],
+  };
 }
 
 

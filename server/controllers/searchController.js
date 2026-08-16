@@ -88,7 +88,7 @@ const formatThought = async (
 
 
 // ==========================================
-// GET PEOPLE TO DISCOVER
+// DISCOVER PEOPLE
 // ==========================================
 
 const getDiscoverPeople = async (
@@ -191,7 +191,7 @@ const getDiscoverPeople = async (
 
 
 // ==========================================
-// GET TRENDING TOPICS
+// TRENDING TOPICS
 // ==========================================
 
 const getTrendingTopics =
@@ -485,11 +485,18 @@ const mentionSearch = async (
         ? req.query.q.trim()
         : "";
 
+    console.log(
+      "Mention search query:",
+      query
+    );
+
+
     if (!query) {
       return res.json({
         users: [],
       });
     }
+
 
     if (
       query.length >
@@ -501,14 +508,19 @@ const mentionSearch = async (
       });
     }
 
+
     const escaped =
       escapeRegex(query);
 
+
+    // Match usernames beginning
+    // with the typed characters.
     const regex =
       new RegExp(
         `^${escaped}`,
         "i"
       );
+
 
     const users =
       await User.find({
@@ -524,6 +536,13 @@ const mentionSearch = async (
           username: 1,
         })
         .limit(8);
+
+
+    console.log(
+      "Mention users found:",
+      users.length
+    );
+
 
     return res.json({
       users:
@@ -591,6 +610,7 @@ const explore = async (
     const trending =
       await getTrendingTopics();
 
+
     // ========================================
     // LATEST
     // ========================================
@@ -634,12 +654,14 @@ const explore = async (
       });
     }
 
+
     // ========================================
     // POPULAR
     // ========================================
 
     const now =
       new Date();
+
 
     const pipeline = [
       {
@@ -782,10 +804,12 @@ const explore = async (
       },
     ];
 
+
     const popular =
       await Thought.aggregate(
         pipeline
       );
+
 
     const formatted =
       await Promise.all(
@@ -853,6 +877,7 @@ const explore = async (
           }
         )
       );
+
 
     return res.json({
       sort:
