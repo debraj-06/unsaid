@@ -4,7 +4,47 @@ import {
 
 
 // ==========================================
-// SEARCH USERS FOR MENTIONS
+// UNIVERSAL SEARCH
+// ==========================================
+
+export function searchEverything(
+  query
+) {
+  const cleanQuery =
+    String(
+      query || ""
+    ).trim();
+
+  if (!cleanQuery) {
+    return Promise.resolve({
+      users: [],
+      thoughts: [],
+    });
+  }
+
+  return apiFetch(
+    `/search?q=${encodeURIComponent(
+      cleanQuery
+    )}`
+  );
+}
+
+
+// ==========================================
+// UNIVERSAL SEARCH ALIAS
+// ==========================================
+
+export function universalSearch(
+  query
+) {
+  return searchEverything(
+    query
+  );
+}
+
+
+// ==========================================
+// MENTION SEARCH
 // ==========================================
 
 export function searchMentionUsers(
@@ -23,33 +63,6 @@ export function searchMentionUsers(
 
   return apiFetch(
     `/search/mentions?q=${encodeURIComponent(
-      cleanQuery
-    )}`
-  );
-}
-
-
-// ==========================================
-// UNIVERSAL SEARCH
-// ==========================================
-
-export function universalSearch(
-  query
-) {
-  const cleanQuery =
-    String(
-      query || ""
-    ).trim();
-
-  if (!cleanQuery) {
-    return Promise.resolve({
-      users: [],
-      thoughts: [],
-    });
-  }
-
-  return apiFetch(
-    `/search?q=${encodeURIComponent(
       cleanQuery
     )}`
   );
