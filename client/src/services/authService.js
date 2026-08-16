@@ -1,25 +1,45 @@
 import { apiFetch } from "./api";
 
+
+// ==========================================
+// REGISTER
+// ==========================================
+
 export function registerUser(data) {
-  return apiFetch("/auth/register", {
+  return apiFetch("/api/auth/register", {
     method: "POST",
     body: JSON.stringify(data),
   });
 }
+
+
+// ==========================================
+// LOGIN
+// ==========================================
 
 export function loginUser(data) {
-  return apiFetch("/auth/login", {
+  return apiFetch("/api/auth/login", {
     method: "POST",
     body: JSON.stringify(data),
   });
 }
 
+
+// ==========================================
+// LOGOUT
+// ==========================================
+
 export function logoutUser() {
-  return apiFetch("/auth/logout", {
+  return apiFetch("/api/auth/logout", {
     method: "POST",
   });
 }
 
+
+// ==========================================
+// GET CURRENT USER
+// ==========================================
+
 export function getCurrentUser() {
-  return apiFetch("/auth/me");
+  return apiFetch("/api/auth/me");
 }
