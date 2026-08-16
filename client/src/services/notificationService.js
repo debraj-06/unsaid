@@ -1,6 +1,4 @@
-import {
-  apiFetch,
-} from "./api";
+import { apiFetch } from "./api";
 
 
 // ==========================================
@@ -9,7 +7,7 @@ import {
 
 export function getNotifications() {
   return apiFetch(
-    "/notifications"
+    "/api/notifications"
   );
 }
 
@@ -20,7 +18,7 @@ export function getNotifications() {
 
 export function getUnreadNotificationCount() {
   return apiFetch(
-    "/notifications/unread-count"
+    "/api/notifications/unread-count"
   );
 }
 
@@ -33,7 +31,7 @@ export function markNotificationRead(
   id
 ) {
   return apiFetch(
-    `/notifications/${id}/read`,
+    `/api/notifications/${id}/read`,
     {
       method: "PATCH",
     }
@@ -47,7 +45,7 @@ export function markNotificationRead(
 
 export function markAllNotificationsRead() {
   return apiFetch(
-    "/notifications/read-all",
+    "/api/notifications/read-all",
     {
       method: "PATCH",
     }
@@ -63,7 +61,7 @@ export function deleteNotification(
   id
 ) {
   return apiFetch(
-    `/notifications/${id}`,
+    `/api/notifications/${id}`,
     {
       method: "DELETE",
     }
@@ -77,9 +75,9 @@ export function deleteNotification(
 
 export function deleteAllNotifications() {
   return apiFetch(
-    "/notifications/all",
+    "/api/notifications/all",
     {
-      method: "DELETE",
+      method: "DELETE"
     }
   );
 }

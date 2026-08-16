@@ -1,6 +1,4 @@
-import {
-  apiFetch,
-} from "./api";
+import { apiFetch } from "./api";
 
 
 // ==========================================
@@ -9,7 +7,7 @@ import {
 
 export function getMyProfile() {
   return apiFetch(
-    "/users/me"
+    "/api/users/me"
   );
 }
 
@@ -22,7 +20,7 @@ export function updateMyProfile(
   bio
 ) {
   return apiFetch(
-    "/users/me",
+    "/api/users/me",
     {
       method: "PATCH",
 
@@ -42,13 +40,11 @@ export function changePassword(
   data
 ) {
   return apiFetch(
-    "/users/me/password",
+    "/api/users/me/password",
     {
       method: "PATCH",
 
-      body: JSON.stringify(
-        data
-      ),
+      body: JSON.stringify(data),
     }
   );
 }
@@ -60,7 +56,7 @@ export function changePassword(
 
 export function getMyThoughts() {
   return apiFetch(
-    "/users/me/thoughts"
+    "/api/users/me/thoughts"
   );
 }
 
@@ -71,7 +67,7 @@ export function getMyThoughts() {
 
 export function getMyBookmarks() {
   return apiFetch(
-    "/users/me/bookmarks"
+    "/api/users/me/bookmarks"
   );
 }
 
@@ -82,7 +78,7 @@ export function getMyBookmarks() {
 
 export function getMyFollowers() {
   return apiFetch(
-    "/users/me/followers"
+    "/api/users/me/followers"
   );
 }
 
@@ -93,7 +89,7 @@ export function getMyFollowers() {
 
 export function getMyFollowing() {
   return apiFetch(
-    "/users/me/following"
+    "/api/users/me/following"
   );
 }
 
@@ -104,7 +100,7 @@ export function getMyFollowing() {
 
 export function getFollowingFeed() {
   return apiFetch(
-    "/users/me/following-feed"
+    "/api/users/me/following-feed"
   );
 }
 
@@ -117,7 +113,7 @@ export function getPublicProfile(
   username
 ) {
   return apiFetch(
-    `/users/${encodeURIComponent(
+    `/api/users/${encodeURIComponent(
       username
     )}`
   );
@@ -132,7 +128,7 @@ export function getUserFollowers(
   username
 ) {
   return apiFetch(
-    `/users/${encodeURIComponent(
+    `/api/users/${encodeURIComponent(
       username
     )}/followers`
   );
@@ -147,7 +143,7 @@ export function getUserFollowing(
   username
 ) {
   return apiFetch(
-    `/users/${encodeURIComponent(
+    `/api/users/${encodeURIComponent(
       username
     )}/following`
   );
@@ -162,7 +158,7 @@ export function toggleFollow(
   username
 ) {
   return apiFetch(
-    `/users/${encodeURIComponent(
+    `/api/users/${encodeURIComponent(
       username
     )}/follow`,
     {

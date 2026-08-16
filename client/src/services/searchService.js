@@ -1,17 +1,12 @@
-import {
-  apiFetch,
-} from "./api";
+import { apiFetch } from "./api";
 
 
 // ==========================================
 // UNIVERSAL SEARCH
 // ==========================================
 
-export function searchEverything(
-  query
-) {
-  const cleanQuery =
-    query.trim();
+export function searchEverything(query) {
+  const cleanQuery = query.trim();
 
   if (!cleanQuery) {
     return Promise.resolve({
@@ -21,7 +16,7 @@ export function searchEverything(
   }
 
   return apiFetch(
-    `/search?q=${encodeURIComponent(
+    `/api/search?q=${encodeURIComponent(
       cleanQuery
     )}`
   );
@@ -32,11 +27,9 @@ export function searchEverything(
 // DISCOVER
 // ==========================================
 
-export function getExplore(
-  sort = "latest"
-) {
+export function getExplore(sort = "latest") {
   return apiFetch(
-    `/search/explore?sort=${encodeURIComponent(
+    `/api/search/explore?sort=${encodeURIComponent(
       sort
     )}`
   );

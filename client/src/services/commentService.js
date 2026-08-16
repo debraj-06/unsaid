@@ -2,103 +2,66 @@ import { apiFetch } from "./api";
 
 
 // ==========================================
-// GET COMMENTS
+// GET NOTIFICATIONS
 // ==========================================
 
-export function getComments(
-  thoughtId
-) {
-  if (!thoughtId) {
-    return Promise.reject(
-      new Error(
-        "Thought id is required"
-      )
-    );
-  }
-
+export function getNotifications() {
   return apiFetch(
-    `/comments/${thoughtId}`
+    "/api/notifications"
   );
 }
 
 
 // ==========================================
-// CREATE COMMENT
+// GET UNREAD COUNT
 // ==========================================
 
-export function createComment(
-  thoughtId,
-  content,
-  parentComment = null
-) {
-  if (!thoughtId) {
-    return Promise.reject(
-      new Error(
-        "Thought id is required"
-      )
-    );
-  }
-
+export function getUnreadNotificationCount() {
   return apiFetch(
-    `/comments/${thoughtId}`,
-    {
-      method: "POST",
-
-      body: JSON.stringify({
-        content,
-        parentComment,
-      }),
-    }
+    "/api/notifications/unread-count"
   );
 }
 
 
 // ==========================================
-// UPDATE COMMENT
+// MARK ONE READ
 // ==========================================
 
-export function updateComment(
-  commentId,
-  content
+export function markNotificationRead(
+  id
 ) {
-  if (!commentId) {
-    return Promise.reject(
-      new Error(
-        "Comment id is required"
-      )
-    );
-  }
-
   return apiFetch(
-    `/comments/${commentId}`,
+    `/api/notifications/${id}/read`,
     {
       method: "PATCH",
-
-      body: JSON.stringify({
-        content,
-      }),
     }
   );
 }
 
 
 // ==========================================
-// DELETE COMMENT
+// MARK ALL READ
 // ==========================================
 
-export function deleteComment(
-  commentId
-) {
-  if (!commentId) {
-    return Promise.reject(
-      new Error(
-        "Comment id is required"
-      )
-    );
-  }
-
+export function markAllNotificationsRead() {
   return apiFetch(
-    `/comments/${commentId}`,
+    "/api/notifications/read-all",
+    {
+      method: "PATCH",
+    }
+  );
+}
+
+
+// ==========================================
+// DELETE ONE
+// ==========================================
+
+export function deleteNotification(
+  id
+) {
+  return apiFetch(
+    `/api/notifications/${id}`,
     {
       method: "DELETE",
     }
@@ -107,24 +70,14 @@ export function deleteComment(
 
 
 // ==========================================
-// LIKE / UNLIKE COMMENT
+// DELETE ALL
 // ==========================================
 
-export function toggleCommentLike(
-  commentId
-) {
-  if (!commentId) {
-    return Promise.reject(
-      new Error(
-        "Comment id is required"
-      )
-    );
-  }
-
+export function deleteAllNotifications() {
   return apiFetch(
-    `/comments/${commentId}/like`,
+    "/api/notifications/all",
     {
-      method: "PATCH",
+      method: "DELETE",
     }
   );
 }
