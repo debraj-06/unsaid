@@ -37,7 +37,7 @@ export function logoutUser() {
 
 
 // ==========================================
-// GET CURRENT USER
+// CURRENT USER
 // ==========================================
 
 export function getCurrentUser() {

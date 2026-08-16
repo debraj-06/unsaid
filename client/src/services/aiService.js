@@ -9,7 +9,7 @@ export function improveThought(
   content
 ) {
   return apiFetch(
-    "/ai/improve-thought",
+    "/api/ai/improve-thought",
     {
       method: "POST",
 
