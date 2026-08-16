@@ -1,17 +1,58 @@
 const API_URL =
-  "https://unsaid-api-xwyy.onrender.com/api";
+  "https://unsaid-api-xwyy.onrender.com";
 
+
+// ==========================================
+// API FETCH
+// ==========================================
 
 export async function apiFetch(
   endpoint,
   options = {}
 ) {
   try {
-    const cleanEndpoint =
+    let cleanEndpoint =
       endpoint.startsWith("/")
         ? endpoint
         : `/${endpoint}`;
 
+
+    // ----------------------------------------
+    // NORMALIZE API PREFIX
+    // ----------------------------------------
+
+    // /api/auth/login
+    // stays /api/auth/login
+    //
+    // /auth/login
+    // becomes /api/auth/login
+    //
+    // /api/api/auth/login
+    // becomes /api/auth/login
+
+    if (
+      cleanEndpoint.startsWith(
+        "/api/api/"
+      )
+    ) {
+      cleanEndpoint =
+        cleanEndpoint.replace(
+          /^\/api\/api\//,
+          "/api/"
+        );
+    } else if (
+      !cleanEndpoint.startsWith(
+        "/api/"
+      )
+    ) {
+      cleanEndpoint =
+        `/api${cleanEndpoint}`;
+    }
+
+
+    // ----------------------------------------
+    // REQUEST
+    // ----------------------------------------
 
     const response =
       await fetch(
@@ -32,6 +73,10 @@ export async function apiFetch(
       );
 
 
+    // ----------------------------------------
+    // RESPONSE
+    // ----------------------------------------
+
     const data =
       await response
         .json()
@@ -40,9 +85,9 @@ export async function apiFetch(
         );
 
 
-    // ========================================
-    // SESSION EXPIRED
-    // ========================================
+    // ----------------------------------------
+    // AUTH EXPIRED
+    // ----------------------------------------
 
     if (
       response.status ===
@@ -61,9 +106,9 @@ export async function apiFetch(
     }
 
 
-    // ========================================
+    // ----------------------------------------
     // API ERROR
-    // ========================================
+    // ----------------------------------------
 
     if (!response.ok) {
       throw new Error(
