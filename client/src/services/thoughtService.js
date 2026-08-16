@@ -24,7 +24,7 @@ export function getThoughts({
   }
 
   return apiFetch(
-    `/thoughts?${params.toString()}`
+    `/api/thoughts?${params.toString()}`
   );
 }
 
@@ -44,7 +44,7 @@ export function getNewThoughts(
   }
 
   return apiFetch(
-    `/thoughts/new?after=${encodeURIComponent(
+    `/api/thoughts/new?after=${encodeURIComponent(
       after
     )}`
   );
@@ -59,7 +59,7 @@ export function getThoughtById(
   id
 ) {
   return apiFetch(
-    `/thoughts/${id}`
+    `/api/thoughts/${id}`
   );
 }
 
@@ -72,7 +72,7 @@ export function createThought(
   content
 ) {
   return apiFetch(
-    "/thoughts",
+    "/api/thoughts",
     {
       method: "POST",
 
@@ -92,7 +92,7 @@ export function toggleThoughtLike(
   id
 ) {
   return apiFetch(
-    `/thoughts/${id}/like`,
+    `/api/thoughts/${id}/like`,
     {
       method: "PATCH",
     }
@@ -108,7 +108,7 @@ export function toggleThoughtBookmark(
   id
 ) {
   return apiFetch(
-    `/thoughts/${id}/bookmark`,
+    `/api/thoughts/${id}/bookmark`,
     {
       method: "PATCH",
     }
@@ -125,7 +125,7 @@ export function updateThought(
   content
 ) {
   return apiFetch(
-    `/thoughts/${id}`,
+    `/api/thoughts/${id}`,
     {
       method: "PATCH",
 
@@ -145,7 +145,7 @@ export function deleteThought(
   id
 ) {
   return apiFetch(
-    `/thoughts/${id}`,
+    `/api/thoughts/${id}`,
     {
       method: "DELETE",
     }
