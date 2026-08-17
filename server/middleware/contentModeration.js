@@ -23,13 +23,17 @@ const PROFANITY_WORDS = [
   "bitch",
   "bastard",
   "dick",
+  "cock",
+  "boob",
+  "tits",
+  "slut",
   "piss",
   "crap",
   "asshole",
     "cunt",
     "whore",
     "porn",
-    
+
 ];
 
 
