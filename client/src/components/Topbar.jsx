@@ -61,6 +61,10 @@ function Topbar({
           query
         )}`
       );
+
+      setMobileSearchOpen(
+        false
+      );
     };
 
 
@@ -89,7 +93,7 @@ function Topbar({
 
 
   // ==========================================
-  // AVATAR
+  // AVATAR LETTER
   // ==========================================
 
   const avatarLetter =
@@ -106,17 +110,23 @@ function Topbar({
         top-0
         z-50
         w-full
+
         border-b
-        border-[#2d2732]
-        bg-[#121016]/95
+        border-white/5
+
+        bg-transparent
+
         backdrop-blur-xl
 
-        dark:border-[#2d2732]
+        transition-all
+        duration-200
+
+        dark:border-white/5
       "
     >
 
       {/* ======================================
-          DESKTOP / TABLET HEADER
+          MAIN BAR
       ====================================== */}
 
       <div
@@ -125,6 +135,7 @@ function Topbar({
           min-h-[82px]
           w-full
           items-center
+
           px-4
 
           sm:px-6
@@ -168,6 +179,7 @@ function Topbar({
               gap-3
               text-left
             "
+            aria-label="Go home"
           >
 
             {/* LOGO */}
@@ -180,10 +192,14 @@ function Topbar({
                 shrink-0
                 place-items-center
                 rounded-[14px]
+
                 bg-[#eee8ff]
+
                 text-sm
                 font-bold
                 text-[#302839]
+
+                shadow-sm
 
                 sm:h-11
                 sm:w-11
@@ -193,7 +209,7 @@ function Topbar({
             </div>
 
 
-            {/* BRAND TEXT */}
+            {/* BRAND NAME */}
 
             <div
               className="
@@ -208,7 +224,10 @@ function Topbar({
                   text-sm
                   font-semibold
                   tracking-[-0.02em]
+
                   text-[#f4edf7]
+
+                  drop-shadow-sm
                 "
               >
                 Unsaid
@@ -221,6 +240,7 @@ function Topbar({
                   text-[8px]
                   font-medium
                   tracking-[0.18em]
+
                   text-[#817786]
                 "
               >
@@ -252,7 +272,9 @@ function Topbar({
               shrink-0
               place-items-center
               rounded-full
+
               text-[#afa3b5]
+
               transition
 
               hover:bg-white/5
@@ -292,6 +314,7 @@ function Topbar({
               }
               className="
                 w-full
+
                 max-w-[620px]
 
                 xl:max-w-[700px]
@@ -318,6 +341,7 @@ function Topbar({
                     left-4
                     top-1/2
                     -translate-y-1/2
+
                     text-[#84788d]
                   "
                 />
@@ -336,27 +360,40 @@ function Topbar({
                     )
                   }
                   placeholder="Search Unsaid..."
+                  autoComplete="off"
+                  spellCheck={false}
                   className="
                     h-11
                     w-full
                     rounded-full
+
                     border
-                    border-[#342d39]
-                    bg-[#1a171e]
+                    border-white/10
+
+                    bg-black/10
+
                     pl-11
                     pr-5
+
                     text-sm
                     text-[#eee8f1]
+
                     outline-none
+
+                    backdrop-blur-md
+
                     transition
 
                     placeholder:text-[#817786]
 
-                    hover:border-[#433a49]
+                    hover:border-white/15
+                    hover:bg-black/15
 
-                    focus:border-[#5b4d64]
+                    focus:border-white/20
+                    focus:bg-black/20
+
                     focus:ring-4
-                    focus:ring-[#30253a]
+                    focus:ring-white/5
                   "
                 />
 
@@ -397,7 +434,9 @@ function Topbar({
                 shrink-0
                 place-items-center
                 rounded-full
+
                 text-[#afa3b5]
+
                 transition
 
                 hover:bg-white/5
@@ -431,7 +470,9 @@ function Topbar({
                 shrink-0
                 place-items-center
                 rounded-full
+
                 text-[#afa3b5]
+
                 transition
 
                 hover:bg-white/5
@@ -474,19 +515,27 @@ function Topbar({
                 shrink-0
                 items-center
                 gap-2
+
                 rounded-full
+
                 border
-                border-[#38313d]
-                bg-[#18151b]
+                border-white/10
+
+                bg-black/10
+
                 p-1.5
                 pr-2.5
+
+                backdrop-blur-md
+
                 transition
 
-                hover:border-[#4a4050]
-                hover:bg-[#211d24]
+                hover:border-white/15
+                hover:bg-black/15
 
                 sm:pr-3
               "
+              aria-label="Open profile"
             >
 
               {/* AVATAR */}
@@ -499,7 +548,9 @@ function Topbar({
                   shrink-0
                   place-items-center
                   rounded-full
+
                   bg-[#eee8ff]
+
                   text-xs
                   font-semibold
                   text-[#302839]
@@ -516,9 +567,13 @@ function Topbar({
                   hidden
                   max-w-[110px]
                   truncate
+
                   text-xs
                   font-semibold
+
                   text-[#eee8f1]
+
+                  drop-shadow-sm
 
                   md:block
 
@@ -543,7 +598,9 @@ function Topbar({
                 shrink-0
                 place-items-center
                 rounded-full
+
                 text-[#afa3b5]
+
                 transition
 
                 hover:bg-white/5
@@ -553,10 +610,12 @@ function Topbar({
               "
               aria-label="Open menu"
             >
+
               <Menu
                 size={20}
                 strokeWidth={1.8}
               />
+
             </button>
 
           </div>
@@ -567,17 +626,22 @@ function Topbar({
 
 
       {/* ======================================
-          MOBILE SEARCH PANEL
+          MOBILE SEARCH
       ====================================== */}
 
       {mobileSearchOpen && (
         <div
           className="
             border-t
-            border-[#2d2732]
+            border-white/5
+
+            bg-black/10
+
             px-4
             pb-4
             pt-3
+
+            backdrop-blur-xl
 
             sm:px-6
 
@@ -606,6 +670,7 @@ function Topbar({
                   left-4
                   top-1/2
                   -translate-y-1/2
+
                   text-[#84788d]
                 "
               />
@@ -625,24 +690,35 @@ function Topbar({
                   )
                 }
                 placeholder="Search Unsaid..."
+                autoComplete="off"
+                spellCheck={false}
                 className="
                   h-11
                   w-full
                   rounded-full
+
                   border
-                  border-[#342d39]
-                  bg-[#1a171e]
+                  border-white/10
+
+                  bg-black/10
+
                   pl-11
                   pr-5
+
                   text-sm
                   text-[#eee8f1]
+
                   outline-none
+
+                  backdrop-blur-md
 
                   placeholder:text-[#817786]
 
-                  focus:border-[#5b4d64]
+                  focus:border-white/20
+                  focus:bg-black/20
+
                   focus:ring-4
-                  focus:ring-[#30253a]
+                  focus:ring-white/5
                 "
               />
 
