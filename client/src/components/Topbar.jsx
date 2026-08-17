@@ -93,7 +93,7 @@ function Topbar({
 
 
   // ==========================================
-  // AVATAR LETTER
+  // AVATAR
   // ==========================================
 
   const avatarLetter =
@@ -112,16 +112,14 @@ function Topbar({
         w-full
 
         border-b
-        border-white/5
+        border-transparent
 
         bg-transparent
 
-        backdrop-blur-xl
+        backdrop-blur-[2px]
 
         transition-all
         duration-200
-
-        dark:border-white/5
       "
     >
 
@@ -368,9 +366,9 @@ function Topbar({
                     rounded-full
 
                     border
-                    border-white/10
+                    border-white/5
 
-                    bg-black/10
+                    bg-transparent
 
                     pl-11
                     pr-5
@@ -380,17 +378,13 @@ function Topbar({
 
                     outline-none
 
-                    backdrop-blur-md
-
                     transition
 
                     placeholder:text-[#817786]
 
-                    hover:border-white/15
-                    hover:bg-black/15
+                    hover:border-white/10
 
-                    focus:border-white/20
-                    focus:bg-black/20
+                    focus:border-white/15
 
                     focus:ring-4
                     focus:ring-white/5
@@ -519,19 +513,17 @@ function Topbar({
                 rounded-full
 
                 border
-                border-white/10
+                border-white/5
 
-                bg-black/10
+                bg-transparent
 
                 p-1.5
                 pr-2.5
 
-                backdrop-blur-md
-
                 transition
 
-                hover:border-white/15
-                hover:bg-black/15
+                hover:border-white/10
+                hover:bg-white/5
 
                 sm:pr-3
               "
@@ -633,15 +625,15 @@ function Topbar({
         <div
           className="
             border-t
-            border-white/5
+            border-transparent
 
-            bg-black/10
+            bg-transparent
 
             px-4
             pb-4
             pt-3
 
-            backdrop-blur-xl
+            backdrop-blur-[2px]
 
             sm:px-6
 
@@ -698,9 +690,9 @@ function Topbar({
                   rounded-full
 
                   border
-                  border-white/10
+                  border-white/5
 
-                  bg-black/10
+                  bg-transparent
 
                   pl-11
                   pr-5
@@ -710,12 +702,9 @@ function Topbar({
 
                   outline-none
 
-                  backdrop-blur-md
-
                   placeholder:text-[#817786]
 
-                  focus:border-white/20
-                  focus:bg-black/20
+                  focus:border-white/15
 
                   focus:ring-4
                   focus:ring-white/5
