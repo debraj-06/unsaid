@@ -25,6 +25,8 @@ const PROFANITY_WORDS = [
   "dick",
   "cock",
   "boob",
+  "boobs",
+  "boobies",
   "tits",
   "slut",
   "piss",
