@@ -3,6 +3,22 @@ const API_URL =
 
 
 // ==========================================
+// GET STORED TOKEN
+// ==========================================
+
+const getStoredToken =
+  () => {
+    try {
+      return localStorage.getItem(
+        "unsaid_token"
+      );
+    } catch {
+      return null;
+    }
+  };
+
+
+// ==========================================
 // API FETCH
 // ==========================================
 
@@ -17,18 +33,10 @@ export async function apiFetch(
         : `/${endpoint}`;
 
 
-    // ----------------------------------------
-    // NORMALIZE API PREFIX
-    // ----------------------------------------
-
-    // /api/auth/login
-    // stays /api/auth/login
-    //
+    // Normalize:
     // /auth/login
-    // becomes /api/auth/login
-    //
+    // /api/auth/login
     // /api/api/auth/login
-    // becomes /api/auth/login
 
     if (
       cleanEndpoint.startsWith(
@@ -50,9 +58,30 @@ export async function apiFetch(
     }
 
 
-    // ----------------------------------------
-    // REQUEST
-    // ----------------------------------------
+    const storedToken =
+      getStoredToken();
+
+
+    const headers = {
+      "Content-Type":
+        "application/json",
+
+      ...(options.headers || {}),
+    };
+
+
+    // ======================================
+    // BEARER TOKEN
+    // ======================================
+
+    if (
+      storedToken &&
+      !headers.Authorization
+    ) {
+      headers.Authorization =
+        `Bearer ${storedToken}`;
+    }
+
 
     const response =
       await fetch(
@@ -63,19 +92,10 @@ export async function apiFetch(
           credentials:
             "include",
 
-          headers: {
-            "Content-Type":
-              "application/json",
-
-            ...(options.headers || {}),
-          },
+          headers,
         }
       );
 
-
-    // ----------------------------------------
-    // RESPONSE
-    // ----------------------------------------
 
     const data =
       await response
@@ -85,9 +105,9 @@ export async function apiFetch(
         );
 
 
-    // ----------------------------------------
-    // AUTH EXPIRED
-    // ----------------------------------------
+    // ======================================
+    // SESSION EXPIRED
+    // ======================================
 
     if (
       response.status ===
@@ -99,6 +119,7 @@ export async function apiFetch(
         )
       );
 
+
       throw new Error(
         data.message ||
           "Your session has expired. Please log in again."
@@ -106,11 +127,13 @@ export async function apiFetch(
     }
 
 
-    // ----------------------------------------
-    // API ERROR
-    // ----------------------------------------
+    // ======================================
+    // OTHER ERROR
+    // ======================================
 
-    if (!response.ok) {
+    if (
+      !response.ok
+    ) {
       throw new Error(
         data.message ||
           `Request failed with status ${response.status}`
@@ -124,6 +147,7 @@ export async function apiFetch(
       "API request error:",
       error
     );
+
 
     throw error;
   }

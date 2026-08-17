@@ -20,11 +20,16 @@ const AuthContext =
 export function AuthProvider({
   children,
 }) {
-  const [user, setUser] =
-    useState(null);
+  const [
+    user,
+    setUser,
+  ] = useState(null);
 
-  const [loading, setLoading] =
-    useState(true);
+
+  const [
+    loading,
+    setLoading,
+  ] = useState(true);
 
 
   // ==========================================
@@ -38,38 +43,56 @@ export function AuthProvider({
           const data =
             await getCurrentUser();
 
+
           setUser(
             data.user
           );
-        } catch (error) {
+        } catch (
+          error
+        ) {
           console.log(
             "No active session"
           );
 
+
+          localStorage.removeItem(
+            "unsaid_token"
+          );
+
+
           setUser(null);
         } finally {
-          setLoading(false);
+          setLoading(
+            false
+          );
         }
       };
+
 
     restoreSession();
   }, []);
 
 
   // ==========================================
-  // HANDLE EXPIRED SESSION
+  // AUTH EXPIRED
   // ==========================================
 
   useEffect(() => {
     const handleAuthExpired =
       () => {
+        localStorage.removeItem(
+          "unsaid_token"
+        );
+
         setUser(null);
       };
+
 
     window.addEventListener(
       "unsaid:auth-expired",
       handleAuthExpired
     );
+
 
     return () => {
       window.removeEventListener(
@@ -84,49 +107,64 @@ export function AuthProvider({
   // REGISTER
   // ==========================================
 
-  const register = async (
-    data
-  ) => {
-    const response =
-      await registerUser(data);
+  const register =
+    async (
+      data
+    ) => {
+      const response =
+        await registerUser(
+          data
+        );
 
-    setUser(
-      response.user
-    );
 
-    return response;
-  };
+      setUser(
+        response.user
+      );
+
+
+      return response;
+    };
 
 
   // ==========================================
   // LOGIN
   // ==========================================
 
-  const login = async (
-    data
-  ) => {
-    const response =
-      await loginUser(data);
+  const login =
+    async (
+      data
+    ) => {
+      const response =
+        await loginUser(
+          data
+        );
 
-    setUser(
-      response.user
-    );
 
-    return response;
-  };
+      setUser(
+        response.user
+      );
+
+
+      return response;
+    };
 
 
   // ==========================================
   // LOGOUT
   // ==========================================
 
-  const logout = async () => {
-    try {
-      await logoutUser();
-    } finally {
-      setUser(null);
-    }
-  };
+  const logout =
+    async () => {
+      try {
+        await logoutUser();
+      } finally {
+        localStorage.removeItem(
+          "unsaid_token"
+        );
+
+        setUser(null);
+      }
+    };
 
 
   return (

@@ -1,14 +1,20 @@
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
+const bcrypt =
+  require("bcryptjs");
 
-const User = require("../models/User");
+const jwt =
+  require("jsonwebtoken");
+
+const User =
+  require("../models/User");
 
 
 // ==========================================
 // CREATE JWT
 // ==========================================
 
-const createToken = (userId) => {
+const createToken = (
+  userId
+) => {
   return jwt.sign(
     {
       userId,
@@ -27,17 +33,35 @@ const createToken = (userId) => {
 
 const cookieOptions = {
   httpOnly: true,
-
-  // IMPORTANT:
-  // Frontend and backend are on different domains.
   sameSite: "none",
-
-  // Required when sameSite is "none"
   secure: true,
-
   path: "/",
+  maxAge:
+    7 *
+    24 *
+    60 *
+    60 *
+    1000,
+};
 
-  maxAge: 7 * 24 * 60 * 60 * 1000,
+
+// ==========================================
+// FORMAT USER
+// ==========================================
+
+const formatUser = (
+  user
+) => {
+  return {
+    id:
+      user._id,
+
+    username:
+      user.username,
+
+    createdAt:
+      user.createdAt,
+  };
 };
 
 
@@ -45,266 +69,340 @@ const cookieOptions = {
 // REGISTER
 // ==========================================
 
-const register = async (req, res) => {
-  try {
-    const {
-      username,
-      password,
-      confirmPassword,
-    } = req.body;
-
-    if (
-      !username ||
-      !password ||
-      !confirmPassword
-    ) {
-      return res.status(400).json({
-        message: "All fields are required",
-      });
-    }
-
-    if (password !== confirmPassword) {
-      return res.status(400).json({
-        message: "Passwords do not match",
-      });
-    }
-
-    const normalizedUsername =
-      username.trim().toLowerCase();
-
-    if (
-      !/^[a-zA-Z0-9_]+$/.test(
-        normalizedUsername
-      )
-    ) {
-      return res.status(400).json({
-        message:
-          "Username can only contain letters, numbers and underscores",
-      });
-    }
-
-    if (normalizedUsername.length < 3) {
-      return res.status(400).json({
-        message:
-          "Username must be at least 3 characters",
-      });
-    }
-
-    if (normalizedUsername.length > 30) {
-      return res.status(400).json({
-        message:
-          "Username cannot exceed 30 characters",
-      });
-    }
-
-    if (password.length < 8) {
-      return res.status(400).json({
-        message:
-          "Password must be at least 8 characters",
-      });
-    }
-
-    const existingUser =
-      await User.findOne({
-        username: normalizedUsername,
-      });
-
-    if (existingUser) {
-      return res.status(409).json({
-        message:
-          "Username already exists",
-      });
-    }
-
-    const hashedPassword =
-      await bcrypt.hash(
+const register =
+  async (
+    req,
+    res
+  ) => {
+    try {
+      const {
+        username,
         password,
-        12
+        confirmPassword,
+      } = req.body;
+
+
+      if (
+        !username ||
+        !password ||
+        !confirmPassword
+      ) {
+        return res.status(400).json({
+          message:
+            "All fields are required",
+        });
+      }
+
+
+      if (
+        password !==
+        confirmPassword
+      ) {
+        return res.status(400).json({
+          message:
+            "Passwords do not match",
+        });
+      }
+
+
+      const normalizedUsername =
+        username
+          .trim()
+          .toLowerCase();
+
+
+      if (
+        !/^[a-zA-Z0-9_]+$/.test(
+          normalizedUsername
+        )
+      ) {
+        return res.status(400).json({
+          message:
+            "Username can only contain letters, numbers and underscores",
+        });
+      }
+
+
+      if (
+        normalizedUsername.length <
+        3
+      ) {
+        return res.status(400).json({
+          message:
+            "Username must be at least 3 characters",
+        });
+      }
+
+
+      if (
+        normalizedUsername.length >
+        30
+      ) {
+        return res.status(400).json({
+          message:
+            "Username cannot exceed 30 characters",
+        });
+      }
+
+
+      if (
+        password.length <
+        8
+      ) {
+        return res.status(400).json({
+          message:
+            "Password must be at least 8 characters",
+        });
+      }
+
+
+      const existingUser =
+        await User.findOne({
+          username:
+            normalizedUsername,
+        });
+
+
+      if (existingUser) {
+        return res.status(409).json({
+          message:
+            "Username already exists",
+        });
+      }
+
+
+      const hashedPassword =
+        await bcrypt.hash(
+          password,
+          12
+        );
+
+
+      const user =
+        await User.create({
+          username:
+            normalizedUsername,
+
+          password:
+            hashedPassword,
+        });
+
+
+      const token =
+        createToken(
+          user._id.toString()
+        );
+
+
+      // Keep cookie authentication.
+      res.cookie(
+        "token",
+        token,
+        cookieOptions
       );
 
-    const user =
-      await User.create({
-        username: normalizedUsername,
-        password: hashedPassword,
+
+      // Also return token for
+      // browser environments where
+      // cookie persistence is unreliable.
+      return res.status(201).json({
+        token,
+
+        user:
+          formatUser(user),
       });
-
-    const token =
-      createToken(
-        user._id.toString()
+    } catch (error) {
+      console.error(
+        "Register error:",
+        error
       );
 
-    res.cookie(
-      "token",
-      token,
-      cookieOptions
-    );
 
-    return res.status(201).json({
-      user: {
-        id: user._id,
-        username: user.username,
-      },
-    });
-  } catch (error) {
-    console.error(
-      "Register error:",
-      error
-    );
-
-    return res.status(500).json({
-      message:
-        "Something went wrong",
-    });
-  }
-};
+      return res.status(500).json({
+        message:
+          "Something went wrong",
+      });
+    }
+  };
 
 
 // ==========================================
 // LOGIN
 // ==========================================
 
-const login = async (req, res) => {
-  try {
-    const {
-      username,
-      password,
-    } = req.body;
-
-    if (!username || !password) {
-      return res.status(400).json({
-        message:
-          "Username and password are required",
-      });
-    }
-
-    const user =
-      await User.findOne({
-        username:
-          username
-            .trim()
-            .toLowerCase(),
-      });
-
-    if (!user) {
-      return res.status(401).json({
-        message:
-          "Invalid username or password",
-      });
-    }
-
-    const passwordMatches =
-      await bcrypt.compare(
+const login =
+  async (
+    req,
+    res
+  ) => {
+    try {
+      const {
+        username,
         password,
-        user.password
+      } = req.body;
+
+
+      if (
+        !username ||
+        !password
+      ) {
+        return res.status(400).json({
+          message:
+            "Username and password are required",
+        });
+      }
+
+
+      const normalizedUsername =
+        username
+          .trim()
+          .toLowerCase();
+
+
+      const user =
+        await User.findOne({
+          username:
+            normalizedUsername,
+        });
+
+
+      if (!user) {
+        return res.status(401).json({
+          message:
+            "Invalid username or password",
+        });
+      }
+
+
+      const passwordMatches =
+        await bcrypt.compare(
+          password,
+          user.password
+        );
+
+
+      if (!passwordMatches) {
+        return res.status(401).json({
+          message:
+            "Invalid username or password",
+        });
+      }
+
+
+      const token =
+        createToken(
+          user._id.toString()
+        );
+
+
+      // Keep cookie for existing
+      // Android/desktop behavior.
+      res.cookie(
+        "token",
+        token,
+        cookieOptions
       );
 
-    if (!passwordMatches) {
-      return res.status(401).json({
+
+      return res.json({
+        token,
+
+        user:
+          formatUser(user),
+      });
+    } catch (error) {
+      console.error(
+        "Login error:",
+        error
+      );
+
+
+      return res.status(500).json({
         message:
-          "Invalid username or password",
+          "Something went wrong",
       });
     }
-
-    const token =
-      createToken(
-        user._id.toString()
-      );
-
-    // IMPORTANT
-    // Store JWT in cross-site cookie
-    res.cookie(
-      "token",
-      token,
-      cookieOptions
-    );
-
-    return res.json({
-      user: {
-        id: user._id,
-        username: user.username,
-      },
-    });
-  } catch (error) {
-    console.error(
-      "Login error:",
-      error
-    );
-
-    return res.status(500).json({
-      message:
-        "Something went wrong",
-    });
-  }
-};
+  };
 
 
 // ==========================================
 // LOGOUT
 // ==========================================
 
-const logout = async (req, res) => {
-  res.clearCookie(
-    "token",
-    {
-      httpOnly: true,
-      sameSite: "none",
-      secure: true,
-      path: "/",
-    }
-  );
+const logout =
+  async (
+    req,
+    res
+  ) => {
+    res.clearCookie(
+      "token",
+      {
+        httpOnly:
+          true,
 
-  return res.json({
-    message:
-      "Logged out",
-  });
-};
+        sameSite:
+          "none",
+
+        secure:
+          true,
+
+        path:
+          "/",
+      }
+    );
+
+
+    return res.json({
+      message:
+        "Logged out",
+    });
+  };
 
 
 // ==========================================
 // CURRENT USER
 // ==========================================
 
-const me = async (req, res) => {
-  try {
-    const user =
-      await User.findById(
-        req.userId
-      ).select(
-        "_id username createdAt"
+const me =
+  async (
+    req,
+    res
+  ) => {
+    try {
+      const user =
+        await User.findById(
+          req.userId
+        ).select(
+          "_id username createdAt"
+        );
+
+
+      if (!user) {
+        return res.status(404).json({
+          message:
+            "User not found",
+        });
+      }
+
+
+      return res.json({
+        user:
+          formatUser(user),
+      });
+    } catch (error) {
+      console.error(
+        "Me error:",
+        error
       );
 
-    if (!user) {
-      return res.status(404).json({
+
+      return res.status(500).json({
         message:
-          "User not found",
+          "Something went wrong",
       });
     }
+  };
 
-    return res.json({
-      user: {
-        id: user._id,
-        username: user.username,
-        createdAt:
-          user.createdAt,
-      },
-    });
-  } catch (error) {
-    console.error(
-      "Me error:",
-      error
-    );
-
-    return res.status(500).json({
-      message:
-        "Something went wrong",
-    });
-  }
-};
-
-
-// ==========================================
-// EXPORT
-// ==========================================
 
 module.exports = {
   register,

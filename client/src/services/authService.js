@@ -1,15 +1,41 @@
-import { apiFetch } from "./api";
+import {
+  apiFetch,
+} from "./api";
 
 
 // ==========================================
 // REGISTER
 // ==========================================
 
-export function registerUser(data) {
-  return apiFetch("/api/auth/register", {
-    method: "POST",
-    body: JSON.stringify(data),
-  });
+export async function registerUser(
+  data
+) {
+  const response =
+    await apiFetch(
+      "/auth/register",
+      {
+        method:
+          "POST",
+
+        body:
+          JSON.stringify(
+            data
+          ),
+      }
+    );
+
+
+  if (
+    response?.token
+  ) {
+    localStorage.setItem(
+      "unsaid_token",
+      response.token
+    );
+  }
+
+
+  return response;
 }
 
 
@@ -17,22 +43,35 @@ export function registerUser(data) {
 // LOGIN
 // ==========================================
 
-export function loginUser(data) {
-  return apiFetch("/api/auth/login", {
-    method: "POST",
-    body: JSON.stringify(data),
-  });
-}
+export async function loginUser(
+  data
+) {
+  const response =
+    await apiFetch(
+      "/auth/login",
+      {
+        method:
+          "POST",
+
+        body:
+          JSON.stringify(
+            data
+          ),
+      }
+    );
 
 
-// ==========================================
-// LOGOUT
-// ==========================================
+  if (
+    response?.token
+  ) {
+    localStorage.setItem(
+      "unsaid_token",
+      response.token
+    );
+  }
 
-export function logoutUser() {
-  return apiFetch("/api/auth/logout", {
-    method: "POST",
-  });
+
+  return response;
 }
 
 
@@ -41,5 +80,28 @@ export function logoutUser() {
 // ==========================================
 
 export function getCurrentUser() {
-  return apiFetch("/api/auth/me");
+  return apiFetch(
+    "/auth/me"
+  );
+}
+
+
+// ==========================================
+// LOGOUT
+// ==========================================
+
+export async function logoutUser() {
+  try {
+    return await apiFetch(
+      "/auth/logout",
+      {
+        method:
+          "POST",
+      }
+    );
+  } finally {
+    localStorage.removeItem(
+      "unsaid_token"
+    );
+  }
 }
