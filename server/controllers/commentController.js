@@ -6,6 +6,10 @@ const {
   createNewMentionNotifications,
 } = require("../utils/createMentionNotifications");
 
+const {
+  moderateText,
+} = require("../middleware/contentModeration");
+
 
 // ==========================================
 // FORMAT COMMENT
@@ -22,7 +26,8 @@ const formatComment = (
     : [];
 
   return {
-    id: comment._id.toString(),
+    id:
+      comment._id.toString(),
 
     username:
       comment.author?.username ||
@@ -47,11 +52,11 @@ const formatComment = (
     likedByMe:
       Boolean(
         userId &&
-          likes.some(
-            (likeUserId) =>
-              likeUserId.toString() ===
-              userId.toString()
-          )
+        likes.some(
+          (likeUserId) =>
+            likeUserId.toString() ===
+            userId.toString()
+        )
       ),
 
     createdAt:
@@ -59,6 +64,61 @@ const formatComment = (
 
     updatedAt:
       comment.updatedAt,
+  };
+};
+
+
+// ==========================================
+// MODERATE COMMENT CONTENT
+// ==========================================
+
+const moderateCommentContent = (
+  content
+) => {
+  const result =
+    moderateText(
+      content
+    );
+
+
+  // ----------------------------------------
+  // BLOCKED CONTENT
+  // ----------------------------------------
+
+  if (
+    !result.allowed
+  ) {
+    return {
+      allowed: false,
+
+      text:
+        content,
+
+      reason:
+        result.reason,
+
+      message:
+        "This comment can't be posted because it contains prohibited or threatening content.",
+    };
+  }
+
+
+  // ----------------------------------------
+  // ALLOWED CONTENT
+  // ----------------------------------------
+
+  return {
+    allowed: true,
+
+    text:
+      result.text,
+
+    reason:
+      result.reason ||
+      null,
+
+    message:
+      null,
   };
 };
 
@@ -72,8 +132,10 @@ const getComments = async (
   res
 ) => {
   try {
-    const { thoughtId } =
-      req.params;
+    const {
+      thoughtId,
+    } = req.params;
+
 
     if (!thoughtId) {
       return res.status(400).json({
@@ -82,10 +144,12 @@ const getComments = async (
       });
     }
 
+
     const thought =
       await Thought.findById(
         thoughtId
       );
+
 
     if (!thought) {
       return res.status(404).json({
@@ -93,6 +157,7 @@ const getComments = async (
           "Thought not found",
       });
     }
+
 
     const comments =
       await Comment.find({
@@ -106,6 +171,7 @@ const getComments = async (
         .sort({
           createdAt: 1,
         });
+
 
     return res.json({
       comments:
@@ -122,6 +188,7 @@ const getComments = async (
       "Get comments error:",
       error
     );
+
 
     return res.status(500).json({
       message:
@@ -140,13 +207,20 @@ const createComment = async (
   res
 ) => {
   try {
-    const { thoughtId } =
-      req.params;
+    const {
+      thoughtId,
+    } = req.params;
+
 
     const {
       content,
       parentComment = null,
     } = req.body;
+
+
+    // --------------------------------------
+    // VALIDATE THOUGHT ID
+    // --------------------------------------
 
     if (!thoughtId) {
       return res.status(400).json({
@@ -154,6 +228,11 @@ const createComment = async (
           "Thought id is required",
       });
     }
+
+
+    // --------------------------------------
+    // VALIDATE CONTENT
+    // --------------------------------------
 
     if (
       typeof content !==
@@ -166,8 +245,14 @@ const createComment = async (
       });
     }
 
-    const cleanContent =
+
+    let cleanContent =
       content.trim();
+
+
+    // --------------------------------------
+    // LENGTH
+    // --------------------------------------
 
     if (
       cleanContent.length >
@@ -179,6 +264,51 @@ const createComment = async (
       });
     }
 
+
+    // --------------------------------------
+    // CONTENT MODERATION
+    // --------------------------------------
+
+    const moderation =
+      moderateCommentContent(
+        cleanContent
+      );
+
+
+    if (
+      !moderation.allowed
+    ) {
+      return res.status(422).json({
+        message:
+          moderation.message,
+
+        code:
+          "COMMENT_CONTENT_BLOCKED",
+
+        reason:
+          moderation.reason,
+      });
+    }
+
+
+    // --------------------------------------
+    // USE CENSORED VERSION
+    // --------------------------------------
+
+    cleanContent =
+      moderation.text.trim();
+
+
+    if (!cleanContent) {
+      return res.status(422).json({
+        message:
+          "This comment cannot be posted.",
+        code:
+          "COMMENT_CONTENT_BLOCKED",
+      });
+    }
+
+
     // --------------------------------------
     // CHECK THOUGHT
     // --------------------------------------
@@ -188,12 +318,14 @@ const createComment = async (
         thoughtId
       );
 
+
     if (!thought) {
       return res.status(404).json({
         message:
           "Thought not found",
       });
     }
+
 
     // --------------------------------------
     // CHECK PARENT COMMENT
@@ -205,12 +337,14 @@ const createComment = async (
           parentComment
         );
 
+
       if (!parent) {
         return res.status(404).json({
           message:
             "Parent comment not found",
         });
       }
+
 
       if (
         parent.thought.toString() !==
@@ -222,6 +356,7 @@ const createComment = async (
         });
       }
     }
+
 
     // --------------------------------------
     // CREATE COMMENT
@@ -239,15 +374,18 @@ const createComment = async (
           cleanContent,
 
         parentComment:
-          parentComment || null,
+          parentComment ||
+          null,
 
         likes: [],
       });
+
 
     await comment.populate(
       "author",
       "username"
     );
+
 
     // --------------------------------------
     // MENTION NOTIFICATION
@@ -267,12 +405,15 @@ const createComment = async (
         commentId:
           comment._id,
       });
-    } catch (notificationError) {
+    } catch (
+      notificationError
+    ) {
       console.error(
         "Comment mention notification error:",
         notificationError
       );
     }
+
 
     return res.status(201).json({
       comment:
@@ -286,6 +427,7 @@ const createComment = async (
       "Create comment error:",
       error
     );
+
 
     return res.status(500).json({
       message:
@@ -304,11 +446,19 @@ const updateComment = async (
   res
 ) => {
   try {
-    const { id } =
-      req.params;
+    const {
+      id,
+    } = req.params;
 
-    const { content } =
-      req.body;
+
+    const {
+      content,
+    } = req.body;
+
+
+    // --------------------------------------
+    // VALIDATE CONTENT
+    // --------------------------------------
 
     if (
       typeof content !==
@@ -321,8 +471,14 @@ const updateComment = async (
       });
     }
 
-    const cleanContent =
+
+    let cleanContent =
       content.trim();
+
+
+    // --------------------------------------
+    // LENGTH
+    // --------------------------------------
 
     if (
       cleanContent.length >
@@ -334,10 +490,60 @@ const updateComment = async (
       });
     }
 
+
+    // --------------------------------------
+    // CONTENT MODERATION
+    // --------------------------------------
+
+    const moderation =
+      moderateCommentContent(
+        cleanContent
+      );
+
+
+    if (
+      !moderation.allowed
+    ) {
+      return res.status(422).json({
+        message:
+          moderation.message,
+
+        code:
+          "COMMENT_CONTENT_BLOCKED",
+
+        reason:
+          moderation.reason,
+      });
+    }
+
+
+    // --------------------------------------
+    // USE CENSORED CONTENT
+    // --------------------------------------
+
+    cleanContent =
+      moderation.text.trim();
+
+
+    if (!cleanContent) {
+      return res.status(422).json({
+        message:
+          "This comment cannot be saved.",
+        code:
+          "COMMENT_CONTENT_BLOCKED",
+      });
+    }
+
+
+    // --------------------------------------
+    // FIND COMMENT
+    // --------------------------------------
+
     const comment =
       await Comment.findById(
         id
       );
+
 
     if (!comment) {
       return res.status(404).json({
@@ -345,6 +551,7 @@ const updateComment = async (
           "Comment not found",
       });
     }
+
 
     // --------------------------------------
     // ONLY OWNER CAN EDIT
@@ -360,13 +567,25 @@ const updateComment = async (
       });
     }
 
+
+    // --------------------------------------
+    // SAVE OLD CONTENT
+    // --------------------------------------
+
     const oldContent =
       comment.content;
+
+
+    // --------------------------------------
+    // UPDATE CONTENT
+    // --------------------------------------
 
     comment.content =
       cleanContent;
 
+
     await comment.save();
+
 
     // --------------------------------------
     // NEW MENTIONS
@@ -388,17 +607,21 @@ const updateComment = async (
         commentId:
           comment._id,
       });
-    } catch (notificationError) {
+    } catch (
+      notificationError
+    ) {
       console.error(
         "Comment edit mention notification error:",
         notificationError
       );
     }
 
+
     await comment.populate(
       "author",
       "username"
     );
+
 
     return res.json({
       comment:
@@ -413,6 +636,7 @@ const updateComment = async (
       error
     );
 
+
     return res.status(500).json({
       message:
         "Something went wrong while editing the comment",
@@ -426,10 +650,15 @@ const updateComment = async (
 // ==========================================
 
 const toggleCommentLike =
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
     try {
-      const { id } =
-        req.params;
+      const {
+        id,
+      } = req.params;
+
 
       if (!id) {
         return res.status(400).json({
@@ -438,10 +667,12 @@ const toggleCommentLike =
         });
       }
 
+
       const comment =
         await Comment.findById(
           id
         );
+
 
       if (!comment) {
         return res.status(404).json({
@@ -450,8 +681,9 @@ const toggleCommentLike =
         });
       }
 
+
       // ------------------------------------
-      // COMPATIBILITY WITH OLD COMMENTS
+      // COMPATIBILITY
       // ------------------------------------
 
       if (
@@ -461,6 +693,7 @@ const toggleCommentLike =
       ) {
         comment.likes = [];
       }
+
 
       // ------------------------------------
       // FIND EXISTING LIKE
@@ -473,7 +706,9 @@ const toggleCommentLike =
             req.userId.toString()
         );
 
+
       let liked;
+
 
       // ------------------------------------
       // REMOVE LIKE
@@ -503,7 +738,9 @@ const toggleCommentLike =
         liked = true;
       }
 
+
       await comment.save();
+
 
       return res.json({
         liked,
@@ -516,6 +753,7 @@ const toggleCommentLike =
         "Comment like error:",
         error
       );
+
 
       return res.status(500).json({
         message:
@@ -534,13 +772,16 @@ const deleteComment = async (
   res
 ) => {
   try {
-    const { id } =
-      req.params;
+    const {
+      id,
+    } = req.params;
+
 
     const comment =
       await Comment.findById(
         id
       );
+
 
     if (!comment) {
       return res.status(404).json({
@@ -548,6 +789,7 @@ const deleteComment = async (
           "Comment not found",
       });
     }
+
 
     // --------------------------------------
     // ONLY OWNER CAN DELETE
@@ -563,6 +805,7 @@ const deleteComment = async (
       });
     }
 
+
     // --------------------------------------
     // DELETE REPLIES
     // --------------------------------------
@@ -572,11 +815,13 @@ const deleteComment = async (
         comment._id,
     });
 
+
     // --------------------------------------
     // DELETE COMMENT
     // --------------------------------------
 
     await comment.deleteOne();
+
 
     return res.json({
       message:
@@ -587,6 +832,7 @@ const deleteComment = async (
       "Delete comment error:",
       error
     );
+
 
     return res.status(500).json({
       message:
