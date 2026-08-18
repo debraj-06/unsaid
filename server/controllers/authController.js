@@ -7,6 +7,14 @@ const jwt =
 const User =
   require("../models/User");
 
+const {
+  checkLoginAllowed,
+  recordFailedLogin,
+  clearLoginAttempts,
+} = require(
+  "../middleware/loginProtection"
+);
+
 
 // ==========================================
 // CREATE JWT
@@ -33,9 +41,13 @@ const createToken = (
 
 const cookieOptions = {
   httpOnly: true,
+
   sameSite: "none",
+
   secure: true,
+
   path: "/",
+
   maxAge:
     7 *
     24 *
@@ -66,6 +78,114 @@ const formatUser = (
 
 
 // ==========================================
+// PASSWORD VALIDATION
+// ==========================================
+
+const validatePassword = (
+  password
+) => {
+  if (
+    typeof password !==
+    "string"
+  ) {
+    return {
+      valid: false,
+
+      message:
+        "Password is required",
+    };
+  }
+
+
+  if (
+    password.length < 8
+  ) {
+    return {
+      valid: false,
+
+      message:
+        "Password must be at least 8 characters",
+    };
+  }
+
+
+  if (
+    password.length > 128
+  ) {
+    return {
+      valid: false,
+
+      message:
+        "Password cannot exceed 128 characters",
+    };
+  }
+
+
+  if (
+    !/[A-Z]/.test(
+      password
+    )
+  ) {
+    return {
+      valid: false,
+
+      message:
+        "Password must contain at least one uppercase letter",
+    };
+  }
+
+
+  if (
+    !/[a-z]/.test(
+      password
+    )
+  ) {
+    return {
+      valid: false,
+
+      message:
+        "Password must contain at least one lowercase letter",
+    };
+  }
+
+
+  if (
+    !/[0-9]/.test(
+      password
+    )
+  ) {
+    return {
+      valid: false,
+
+      message:
+        "Password must contain at least one number",
+    };
+  }
+
+
+  if (
+    !/[^A-Za-z0-9]/.test(
+      password
+    )
+  ) {
+    return {
+      valid: false,
+
+      message:
+        "Password must contain at least one special character",
+    };
+  }
+
+
+  return {
+    valid: true,
+
+    message: null,
+  };
+};
+
+
+// ==========================================
 // REGISTER
 // ==========================================
 
@@ -82,6 +202,10 @@ const register =
       } = req.body;
 
 
+      // --------------------------------------
+      // REQUIRED FIELDS
+      // --------------------------------------
+
       if (
         !username ||
         !password ||
@@ -94,16 +218,44 @@ const register =
       }
 
 
+      // --------------------------------------
+      // PASSWORD MATCH
+      // --------------------------------------
+
       if (
         password !==
         confirmPassword
       ) {
         return res.status(400).json({
           message:
-            "Passwords do not match",
+            "Those passwords don't match yet.",
         });
       }
 
+
+      // --------------------------------------
+      // STRONG PASSWORD
+      // --------------------------------------
+
+      const passwordValidation =
+        validatePassword(
+          password
+        );
+
+
+      if (
+        !passwordValidation.valid
+      ) {
+        return res.status(400).json({
+          message:
+            passwordValidation.message,
+        });
+      }
+
+
+      // --------------------------------------
+      // USERNAME
+      // --------------------------------------
 
       const normalizedUsername =
         username
@@ -145,16 +297,9 @@ const register =
       }
 
 
-      if (
-        password.length <
-        8
-      ) {
-        return res.status(400).json({
-          message:
-            "Password must be at least 8 characters",
-        });
-      }
-
+      // --------------------------------------
+      // EXISTING USER
+      // --------------------------------------
 
       const existingUser =
         await User.findOne({
@@ -171,12 +316,20 @@ const register =
       }
 
 
+      // --------------------------------------
+      // HASH
+      // --------------------------------------
+
       const hashedPassword =
         await bcrypt.hash(
           password,
           12
         );
 
+
+      // --------------------------------------
+      // CREATE USER
+      // --------------------------------------
 
       const user =
         await User.create({
@@ -188,13 +341,20 @@ const register =
         });
 
 
+      // --------------------------------------
+      // JWT
+      // --------------------------------------
+
       const token =
         createToken(
           user._id.toString()
         );
 
 
-      // Keep cookie authentication.
+      // --------------------------------------
+      // COOKIE
+      // --------------------------------------
+
       res.cookie(
         "token",
         token,
@@ -202,9 +362,10 @@ const register =
       );
 
 
-      // Also return token for
-      // browser environments where
-      // cookie persistence is unreliable.
+      // --------------------------------------
+      // RESPONSE
+      // --------------------------------------
+
       return res.status(201).json({
         token,
 
@@ -259,6 +420,51 @@ const login =
           .toLowerCase();
 
 
+      // --------------------------------------
+      // LOGIN TIMER / BACKOFF
+      // --------------------------------------
+
+      const protection =
+        checkLoginAllowed(
+          req,
+          normalizedUsername
+        );
+
+
+      if (
+        !protection.allowed
+      ) {
+        res.set(
+          "Retry-After",
+          String(
+            protection.retryAfter
+          )
+        );
+
+
+        return res.status(429).json({
+          message:
+            protection.retryAfter >=
+            60
+              ? `Too many login attempts. Try again in ${Math.ceil(
+                  protection.retryAfter /
+                    60
+                )} minute(s).`
+              : `Too many login attempts. Try again in ${protection.retryAfter} second(s).`,
+
+          retryAfter:
+            protection.retryAfter,
+
+          code:
+            "LOGIN_RATE_LIMITED",
+        });
+      }
+
+
+      // --------------------------------------
+      // FIND USER
+      // --------------------------------------
+
       const user =
         await User.findOne({
           username:
@@ -266,13 +472,29 @@ const login =
         });
 
 
+      // --------------------------------------
+      // INVALID USER
+      // --------------------------------------
+
       if (!user) {
+        recordFailedLogin(
+          req,
+          normalizedUsername
+        );
+
+
+        // Don't reveal whether the
+        // username exists.
         return res.status(401).json({
           message:
             "Invalid username or password",
         });
       }
 
+
+      // --------------------------------------
+      // PASSWORD CHECK
+      // --------------------------------------
 
       const passwordMatches =
         await bcrypt.compare(
@@ -281,12 +503,32 @@ const login =
         );
 
 
+      // --------------------------------------
+      // WRONG PASSWORD
+      // --------------------------------------
+
       if (!passwordMatches) {
+        recordFailedLogin(
+          req,
+          normalizedUsername
+        );
+
+
         return res.status(401).json({
           message:
             "Invalid username or password",
         });
       }
+
+
+      // --------------------------------------
+      // SUCCESS
+      // --------------------------------------
+
+      clearLoginAttempts(
+        req,
+        normalizedUsername
+      );
 
 
       const token =
@@ -295,14 +537,20 @@ const login =
         );
 
 
-      // Keep cookie for existing
-      // Android/desktop behavior.
+      // --------------------------------------
+      // COOKIE
+      // --------------------------------------
+
       res.cookie(
         "token",
         token,
         cookieOptions
       );
 
+
+      // --------------------------------------
+      // RESPONSE
+      // --------------------------------------
 
       return res.json({
         token,
@@ -337,8 +585,7 @@ const logout =
     res.clearCookie(
       "token",
       {
-        httpOnly:
-          true,
+        httpOnly: true,
 
         sameSite:
           "none",
@@ -346,8 +593,7 @@ const logout =
         secure:
           true,
 
-        path:
-          "/",
+        path: "/",
       }
     );
 
@@ -409,4 +655,5 @@ module.exports = {
   login,
   logout,
   me,
+  validatePassword,
 };
