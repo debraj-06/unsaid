@@ -2,6 +2,7 @@ import {
   Bell,
   Bookmark,
   Compass,
+  Gavel,
   Home,
   UserRound,
 } from "lucide-react";
@@ -10,8 +11,10 @@ import { NavLink } from "react-router-dom";
 
 import { useAuth } from "../context/AuthContext";
 
+
 function AppNavigation() {
   const { user } = useAuth();
+
 
   const navigationItems = [
     {
@@ -20,21 +23,31 @@ function AppNavigation() {
       icon: Home,
       end: true,
     },
+
     {
       to: "/discover",
       label: "Discover",
       icon: Compass,
     },
+
+    {
+      to: "/court",
+      label: "Court",
+      icon: Gavel,
+    },
+
     {
       to: "/saved",
       label: "Saved",
       icon: Bookmark,
     },
+
     {
       to: "/notifications",
       label: "Notifications",
       icon: Bell,
     },
+
     {
       to: "/profile",
       label: "My space",
@@ -42,13 +55,21 @@ function AppNavigation() {
     },
   ];
 
+
   return (
     <>
       {/* ======================================
           DESKTOP SIDEBAR
       ====================================== */}
 
-      <nav className="hidden lg:flex lg:flex-col">
+      <nav
+        className="
+          hidden
+          lg:flex
+          lg:flex-col
+        "
+      >
+
         {/* USER CARD */}
 
         {user && (
@@ -66,6 +87,7 @@ function AppNavigation() {
             "
           >
             <div className="flex items-center gap-3">
+
               <div
                 className="
                   grid
@@ -84,7 +106,9 @@ function AppNavigation() {
                 {user.username?.charAt(0) || "U"}
               </div>
 
+
               <div className="min-w-0">
+
                 <p
                   className="
                     truncate
@@ -98,6 +122,7 @@ function AppNavigation() {
                   @{user.username}
                 </p>
 
+
                 <p
                   className="
                     mt-0.5
@@ -109,14 +134,18 @@ function AppNavigation() {
                 >
                   Your space
                 </p>
+
               </div>
+
             </div>
           </div>
         )}
 
+
         {/* NAV ITEMS */}
 
         <div className="space-y-1">
+
           {navigationItems.map(
             ({
               to,
@@ -128,7 +157,9 @@ function AppNavigation() {
                 key={to}
                 to={to}
                 end={end}
-                className={({ isActive }) => `
+                className={({
+                  isActive,
+                }) => `
                   flex
                   w-full
                   items-center
@@ -150,6 +181,7 @@ function AppNavigation() {
                       : `
                         font-medium
                         text-[#736879]
+
                         hover:bg-[#f2edf4]
                         hover:text-[#352d3a]
 
@@ -159,24 +191,31 @@ function AppNavigation() {
                       `
                   }
                 `}
-                style={({ isActive }) => ({
+                style={({
+                  isActive,
+                }) => ({
                   color: isActive
                     ? "#302839"
                     : undefined,
                 })}
               >
-                {({ isActive }) => (
+                {({
+                  isActive,
+                }) => (
                   <>
                     <Icon
                       size={18}
                       strokeWidth={
-                        isActive ? 2.2 : 1.8
+                        isActive
+                          ? 2.2
+                          : 1.8
                       }
                       className="shrink-0"
                       style={{
-                        color: isActive
-                          ? "#302839"
-                          : "currentColor",
+                        color:
+                          isActive
+                            ? "#302839"
+                            : "currentColor",
                       }}
                     />
 
@@ -188,7 +227,9 @@ function AppNavigation() {
               </NavLink>
             )
           )}
+
         </div>
+
 
         {/* IDENTITY NOTE */}
 
@@ -206,6 +247,7 @@ function AppNavigation() {
             dark:bg-[#19171d]
           "
         >
+
           <p
             className="
               text-[10px]
@@ -217,6 +259,7 @@ function AppNavigation() {
           >
             Your identity stays minimal.
           </p>
+
 
           <p
             className="
@@ -230,8 +273,11 @@ function AppNavigation() {
           >
             Say what you think, not who you are.
           </p>
+
         </div>
+
       </nav>
+
 
       {/* ======================================
           MOBILE BOTTOM NAVIGATION
@@ -248,6 +294,7 @@ function AppNavigation() {
           lg:hidden
         "
       >
+
         {navigationItems.map(
           ({
             to,
@@ -259,7 +306,9 @@ function AppNavigation() {
               key={to}
               to={to}
               end={end}
-              className={({ isActive }) => `
+              className={({
+                isActive,
+              }) => `
                 flex
                 min-w-0
                 flex-1
@@ -283,6 +332,7 @@ function AppNavigation() {
                     : `
                       font-semibold
                       text-[#8d8392]
+
                       hover:bg-[#f4eff5]
                       hover:text-[#413747]
 
@@ -292,31 +342,40 @@ function AppNavigation() {
                     `
                 }
               `}
-              style={({ isActive }) => ({
+              style={({
+                isActive,
+              }) => ({
                 color: isActive
                   ? "#302839"
                   : undefined,
               })}
             >
-              {({ isActive }) => (
+              {({
+                isActive,
+              }) => (
                 <>
                   <Icon
                     size={18}
                     strokeWidth={
-                      isActive ? 2.2 : 1.8
+                      isActive
+                        ? 2.2
+                        : 1.8
                     }
                     className="shrink-0"
                     style={{
-                      color: isActive
-                        ? "#302839"
-                        : "currentColor",
+                      color:
+                        isActive
+                          ? "#302839"
+                          : "currentColor",
                     }}
                   />
 
                   <span className="truncate">
-                    {label === "Notifications"
+                    {label ===
+                    "Notifications"
                       ? "Alerts"
-                      : label === "My space"
+                      : label ===
+                          "My space"
                         ? "Me"
                         : label}
                   </span>
@@ -325,9 +384,11 @@ function AppNavigation() {
             </NavLink>
           )
         )}
+
       </nav>
     </>
   );
 }
+
 
 export default AppNavigation;
