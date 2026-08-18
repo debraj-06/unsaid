@@ -2,6 +2,7 @@ import {
   Bell,
   Bookmark,
   ChevronDown,
+  ChevronUp,
   Compass,
   Home,
   LogOut,
@@ -58,7 +59,6 @@ function Topbar({
     search,
     setSearch,
   ] = useState("");
-
 
   const [
     mobileSearchOpen,
@@ -143,7 +143,7 @@ function Topbar({
 
 
   // ==========================================
-  // CLOSE PROFILE ON OUTSIDE CLICK
+  // OUTSIDE PROFILE CLICK
   // ==========================================
 
   useEffect(() => {
@@ -161,12 +161,10 @@ function Topbar({
         }
       };
 
-
     document.addEventListener(
       "mousedown",
       handleOutsideClick
     );
-
 
     return () => {
       document.removeEventListener(
@@ -178,15 +176,14 @@ function Topbar({
 
 
   // ==========================================
-  // ESCAPE HANDLER
+  // ESCAPE
   // ==========================================
 
   useEffect(() => {
     const handleEscape =
       (event) => {
         if (
-          event.key !==
-          "Escape"
+          event.key !== "Escape"
         ) {
           return;
         }
@@ -204,12 +201,10 @@ function Topbar({
         );
       };
 
-
     document.addEventListener(
       "keydown",
       handleEscape
     );
-
 
     return () => {
       document.removeEventListener(
@@ -221,7 +216,7 @@ function Topbar({
 
 
   // ==========================================
-  // PREVENT BODY SCROLL WHEN DRAWER OPEN
+  // LOCK BODY SCROLL ON MOBILE DRAWER
   // ==========================================
 
   useEffect(() => {
@@ -229,15 +224,11 @@ function Topbar({
       return;
     }
 
-
     const previousOverflow =
-      document.body.style
-        .overflow;
-
+      document.body.style.overflow;
 
     document.body.style.overflow =
       "hidden";
-
 
     return () => {
       document.body.style.overflow =
@@ -249,7 +240,7 @@ function Topbar({
 
 
   // ==========================================
-  // CLOSE DRAWER WHEN ROUTE CHANGES
+  // CLOSE UI AFTER NAVIGATION
   // ==========================================
 
   useEffect(() => {
@@ -271,7 +262,7 @@ function Topbar({
 
 
   // ==========================================
-  // MOBILE NAV
+  // MOBILE NAVIGATION
   // ==========================================
 
   const mobileNavigation = [
@@ -280,25 +271,21 @@ function Topbar({
       path: "/",
       icon: Home,
     },
-
     {
       label: "Discover",
       path: "/discover",
       icon: Compass,
     },
-
     {
       label: "Saved",
       path: "/saved",
       icon: Bookmark,
     },
-
     {
       label: "Notifications",
       path: "/notifications",
       icon: Bell,
     },
-
     {
       label: "My space",
       path: "/space",
@@ -317,7 +304,6 @@ function Topbar({
         return;
       }
 
-
       try {
         setLoggingOut(
           true
@@ -332,7 +318,6 @@ function Topbar({
         );
 
         await logout();
-
 
         navigate(
           "/login",
@@ -382,71 +367,111 @@ function Topbar({
 
 
   // ==========================================
-  // NAVIGATION ITEM
+  // MOBILE NAV ITEM
   // ==========================================
 
-  const MobileNavItem =
-    ({
-      item,
-    }) => {
-      const Icon =
-        item.icon;
+  const MobileNavItem = ({
+    item,
+  }) => {
+    const Icon =
+      item.icon;
 
+    return (
+      <NavLink
+        to={
+          item.path
+        }
+        end={
+          item.path === "/"
+        }
+        onClick={() =>
+          setMobileMenuOpen(
+            false
+          )
+        }
+        className={({ isActive }) =>
+          `
+            group
+            flex
+            min-h-[54px]
+            w-full
+            items-center
+            gap-3
+            rounded-[16px]
+            px-3
+            transition-all
+            duration-200
 
-      return (
-        <NavLink
-          to={
-            item.path
-          }
-          end={
-            item.path ===
-            "/"
-          }
-          onClick={() =>
-            setMobileMenuOpen(
-              false
-            )
-          }
-          className={({
-            isActive,
-          }) =>
-            `
-              flex
-              min-h-[52px]
-              items-center
-              gap-3
-              rounded-[16px]
-              px-4
-              text-sm
-              font-medium
-              transition
+            ${
+              isActive
+                ? `
+                  bg-[#eee8ff]
+                  text-[#302839]
+                  shadow-[0_4px_18px_rgba(238,232,255,0.07)]
+                `
+                : `
+                  text-[#b9afc0]
+                  hover:bg-white/[0.045]
+                  hover:text-[#f3edf7]
+                `
+            }
+          `
+        }
+      >
+        {({ isActive }) => (
+          <>
+            <span
+              className={`
+                grid
+                h-10
+                w-10
+                shrink-0
+                place-items-center
+                rounded-[12px]
+                transition-all
 
-              ${
-                isActive
-                  ? `
-                    bg-[#eee8ff]
-                    text-[#302839]
-                  `
-                  : `
-                    text-[#c3b8c8]
-                    hover:bg-white/5
-                    hover:text-white
-                  `
+                ${
+                  isActive
+                    ? `
+                      bg-[#302839]/[0.08]
+                      text-[#302839]
+                    `
+                    : `
+                      bg-transparent
+                      text-[#918698]
+                      group-hover:text-[#eee8f2]
+                    `
+                }
+              `}
+            >
+              <Icon
+                size={18}
+                strokeWidth={1.8}
+              />
+            </span>
+
+            <span
+              className={`
+                text-[13px]
+                leading-none
+                tracking-[-0.01em]
+
+                ${
+                  isActive
+                    ? "font-semibold"
+                    : "font-medium"
+                }
+              `}
+            >
+              {
+                item.label
               }
-            `
-          }
-        >
-          <Icon
-            size={19}
-            strokeWidth={1.8}
-          />
-
-          <span>
-            {item.label}
-          </span>
-        </NavLink>
-      );
-    };
+            </span>
+          </>
+        )}
+      </NavLink>
+    );
+  };
 
 
   return (
@@ -526,8 +551,8 @@ function Topbar({
                 gap-3
                 text-left
               "
+              aria-label="Go home"
             >
-
               <div
                 className="
                   grid
@@ -552,26 +577,22 @@ function Topbar({
                 U
               </div>
 
-
               <div
                 className="
                   hidden
                   sm:block
                 "
               >
-
                 <p
                   className="
                     text-sm
                     font-semibold
                     tracking-[-0.02em]
-
                     text-[#f4edf7]
                   "
                 >
                   Unsaid
                 </p>
-
 
                 <p
                   className="
@@ -579,15 +600,12 @@ function Topbar({
                     text-[8px]
                     font-medium
                     tracking-[0.18em]
-
                     text-[#817786]
                   "
                 >
                   SAY WHAT YOU MEAN
                 </p>
-
               </div>
-
             </button>
 
 
@@ -605,7 +623,6 @@ function Topbar({
                 lg:flex
               "
             >
-
               <form
                 onSubmit={
                   handleSearch
@@ -622,13 +639,11 @@ function Topbar({
                   3xl:max-w-[820px]
                 "
               >
-
                 <div
                   className="
                     relative
                   "
                 >
-
                   <Search
                     size={18}
                     strokeWidth={1.8}
@@ -638,11 +653,9 @@ function Topbar({
                       left-4
                       top-1/2
                       -translate-y-1/2
-
                       text-[#84788d]
                     "
                   />
-
 
                   <input
                     type="text"
@@ -689,16 +702,13 @@ function Topbar({
                       focus:ring-white/5
                     "
                   />
-
                 </div>
-
               </form>
-
             </div>
 
 
             {/* ==================================
-                RIGHT ACTIONS
+                RIGHT SIDE
             ================================== */}
 
             <div
@@ -719,7 +729,9 @@ function Topbar({
                 type="button"
                 onClick={() =>
                   setMobileSearchOpen(
-                    (current) =>
+                    (
+                      current
+                    ) =>
                       !current
                   )
                 }
@@ -727,6 +739,7 @@ function Topbar({
                   grid
                   h-10
                   w-10
+                  shrink-0
                   place-items-center
                   rounded-full
 
@@ -748,7 +761,7 @@ function Topbar({
               </button>
 
 
-              {/* DESKTOP NOTIFICATION */}
+              {/* NOTIFICATIONS */}
 
               <button
                 type="button"
@@ -771,6 +784,7 @@ function Topbar({
                   hover:text-white
                 "
                 aria-label="Notifications"
+                title="Notifications"
               >
                 <Bell
                   size={19}
@@ -785,7 +799,9 @@ function Topbar({
                 type="button"
                 onClick={() =>
                   setDarkMode(
-                    (current) =>
+                    (
+                      current
+                    ) =>
                       !current
                   )
                 }
@@ -826,7 +842,7 @@ function Topbar({
               </button>
 
 
-              {/* PROFILE DESKTOP */}
+              {/* DESKTOP PROFILE */}
 
               <div
                 ref={
@@ -839,12 +855,13 @@ function Topbar({
                   lg:block
                 "
               >
-
                 <button
                   type="button"
                   onClick={() =>
                     setProfileMenuOpen(
-                      (current) =>
+                      (
+                        current
+                      ) =>
                         !current
                     )
                   }
@@ -871,13 +888,14 @@ function Topbar({
                   aria-expanded={
                     profileMenuOpen
                   }
+                  aria-haspopup="menu"
                 >
-
                   <div
                     className="
                       grid
                       h-8
                       w-8
+                      shrink-0
                       place-items-center
                       rounded-full
 
@@ -892,7 +910,6 @@ function Topbar({
                       avatarLetter
                     }
                   </div>
-
 
                   <span
                     className="
@@ -912,20 +929,25 @@ function Topbar({
                     }
                   </span>
 
-
-                  <ChevronDown
-                    size={14}
-                    className={
-                      profileMenuOpen
-                        ? "rotate-180 transition-transform"
-                        : "transition-transform"
-                    }
-                  />
-
+                  {profileMenuOpen ? (
+                    <ChevronUp
+                      size={14}
+                      className="
+                        text-[#8f8497]
+                      "
+                    />
+                  ) : (
+                    <ChevronDown
+                      size={14}
+                      className="
+                        text-[#8f8497]
+                      "
+                    />
+                  )}
                 </button>
 
 
-                {/* PROFILE MENU */}
+                {/* PROFILE DROPDOWN */}
 
                 {profileMenuOpen && (
                   <div
@@ -938,7 +960,6 @@ function Topbar({
                       w-[220px]
 
                       overflow-hidden
-
                       rounded-[20px]
 
                       border
@@ -953,7 +974,6 @@ function Topbar({
                       backdrop-blur-xl
                     "
                   >
-
                     <div
                       className="
                         px-3
@@ -986,14 +1006,12 @@ function Topbar({
                       </p>
                     </div>
 
-
                     <div
                       className="
                         border-t
                         border-[#302934]
                       "
                     />
-
 
                     <button
                       type="button"
@@ -1018,6 +1036,7 @@ function Topbar({
                         text-[#d8cedc]
 
                         hover:bg-white/5
+                        hover:text-white
                       "
                     >
                       <UserRound
@@ -1026,7 +1045,6 @@ function Topbar({
 
                       My space
                     </button>
-
 
                     <button
                       type="button"
@@ -1051,6 +1069,7 @@ function Topbar({
                         text-[#d8cedc]
 
                         hover:bg-white/5
+                        hover:text-white
                       "
                     >
                       <Bell
@@ -1060,7 +1079,6 @@ function Topbar({
                       Notifications
                     </button>
 
-
                     <div
                       className="
                         my-1
@@ -1068,7 +1086,6 @@ function Topbar({
                         border-[#302934]
                       "
                     />
-
 
                     <button
                       type="button"
@@ -1096,11 +1113,11 @@ function Topbar({
                         text-red-400
 
                         hover:bg-red-500/10
+                        hover:text-red-300
 
                         disabled:opacity-50
                       "
                     >
-
                       <LogOut
                         size={16}
                       />
@@ -1110,24 +1127,23 @@ function Topbar({
                           ? "Logging out..."
                           : "Log out"
                       }
-
                     </button>
-
                   </div>
                 )}
-
               </div>
 
 
-              {/* MOBILE MENU BUTTON */}
+              {/* MOBILE HAMBURGER */}
 
               <button
                 type="button"
                 onClick={() =>
                   setMobileMenuOpen(
-                    (current) =>
+                    (
+                      current
+                    ) =>
                       !current
-                  )
+                    )
                 }
                 className="
                   grid
@@ -1155,7 +1171,6 @@ function Topbar({
                   mobileMenuOpen
                 }
               >
-
                 {mobileMenuOpen ? (
                   <X
                     size={21}
@@ -1167,18 +1182,15 @@ function Topbar({
                     strokeWidth={1.8}
                   />
                 )}
-
               </button>
 
             </div>
-
           </div>
-
         </div>
 
 
         {/* ======================================
-            MOBILE SEARCH PANEL
+            MOBILE SEARCH
         ====================================== */}
 
         {mobileSearchOpen && (
@@ -1196,21 +1208,19 @@ function Topbar({
               lg:hidden
             "
           >
-
             <form
               onSubmit={
                 handleSearch
               }
             >
-
               <div
                 className="
                   relative
                 "
               >
-
                 <Search
                   size={18}
+                  strokeWidth={1.8}
                   className="
                     pointer-events-none
                     absolute
@@ -1220,7 +1230,6 @@ function Topbar({
                     text-[#84788d]
                   "
                 />
-
 
                 <input
                   autoFocus
@@ -1237,6 +1246,7 @@ function Topbar({
                   }
                   placeholder="Search Unsaid..."
                   autoComplete="off"
+                  spellCheck={false}
                   className="
                     h-11
                     w-full
@@ -1258,23 +1268,20 @@ function Topbar({
                     placeholder:text-[#817786]
 
                     focus:border-white/15
+
                     focus:ring-4
                     focus:ring-white/5
                   "
                 />
-
               </div>
-
             </form>
-
           </div>
         )}
-
       </header>
 
 
       {/* ======================================
-          MOBILE BACKDROP
+          MOBILE OVERLAY
       ====================================== */}
 
       <div
@@ -1283,7 +1290,7 @@ function Topbar({
           inset-0
           z-[80]
 
-          bg-black/50
+          bg-black/55
 
           transition-opacity
           duration-300
@@ -1319,15 +1326,15 @@ function Topbar({
           z-[90]
 
           flex
-          w-[min(86vw,340px)]
+          w-[min(88vw,360px)]
           flex-col
 
           border-r
-          border-[#302934]
+          border-[#2d2732]
 
-          bg-[#121016]
+          bg-[#141118]
 
-          shadow-[20px_0_60px_rgba(0,0,0,0.35)]
+          shadow-[24px_0_70px_rgba(0,0,0,0.4)]
 
           transition-transform
           duration-300
@@ -1354,6 +1361,7 @@ function Topbar({
           className="
             flex
             min-h-[78px]
+            shrink-0
             items-center
             justify-between
 
@@ -1363,7 +1371,6 @@ function Topbar({
             px-5
           "
         >
-
           <button
             type="button"
             onClick={() => {
@@ -1377,9 +1384,9 @@ function Topbar({
               flex
               items-center
               gap-3
+              text-left
             "
           >
-
             <div
               className="
                 grid
@@ -1398,13 +1405,7 @@ function Topbar({
               U
             </div>
 
-
-            <div
-              className="
-                text-left
-              "
-            >
-
+            <div>
               <p
                 className="
                   text-sm
@@ -1425,11 +1426,8 @@ function Topbar({
               >
                 SAY WHAT YOU MEAN
               </p>
-
             </div>
-
           </button>
-
 
           <button
             type="button"
@@ -1447,6 +1445,8 @@ function Topbar({
 
               text-[#93889b]
 
+              transition
+
               hover:bg-white/5
               hover:text-white
             "
@@ -1454,7 +1454,6 @@ function Topbar({
           >
             <X size={19} />
           </button>
-
         </div>
 
 
@@ -1466,6 +1465,7 @@ function Topbar({
           className="
             mx-4
             mt-5
+            shrink-0
 
             rounded-[20px]
 
@@ -1477,7 +1477,6 @@ function Topbar({
             p-4
           "
         >
-
           <button
             type="button"
             onClick={
@@ -1491,12 +1490,11 @@ function Topbar({
               text-left
             "
           >
-
             <div
               className="
                 grid
-                h-10
-                w-10
+                h-11
+                w-11
                 shrink-0
                 place-items-center
                 rounded-full
@@ -1511,17 +1509,15 @@ function Topbar({
               {avatarLetter}
             </div>
 
-
             <div
               className="
                 min-w-0
               "
             >
-
               <p
                 className="
                   truncate
-                  text-xs
+                  text-sm
                   font-semibold
                   text-[#eee8f1]
                 "
@@ -1533,7 +1529,6 @@ function Topbar({
                 }
               </p>
 
-
               <p
                 className="
                   mt-1
@@ -1543,11 +1538,8 @@ function Topbar({
               >
                 Your space
               </p>
-
             </div>
-
           </button>
-
         </div>
 
 
@@ -1557,21 +1549,21 @@ function Topbar({
 
         <nav
           className="
-            mt-5
+            mt-6
             flex-1
 
             overflow-y-auto
 
             px-4
+            pb-5
           "
         >
-
           <p
             className="
               px-3
-              pb-2
+              pb-3
 
-              text-[9px]
+              text-[10px]
               font-semibold
               uppercase
               tracking-[0.16em]
@@ -1585,12 +1577,13 @@ function Topbar({
 
           <div
             className="
-              space-y-1
+              space-y-1.5
             "
           >
-
             {mobileNavigation.map(
-              (item) => (
+              (
+                item
+              ) => (
                 <MobileNavItem
                   key={
                     item.path
@@ -1601,18 +1594,33 @@ function Topbar({
                 />
               )
             )}
-
           </div>
 
 
           <div
             className="
-              my-5
-
+              my-6
               border-t
               border-[#29242d]
             "
           />
+
+
+          <p
+            className="
+              px-3
+              pb-3
+
+              text-[10px]
+              font-semibold
+              uppercase
+              tracking-[0.16em]
+
+              text-[#6f6576]
+            "
+          >
+            Preferences
+          </p>
 
 
           {/* THEME */}
@@ -1621,65 +1629,85 @@ function Topbar({
             type="button"
             onClick={() =>
               setDarkMode(
-                (current) =>
+                (
+                  current
+                ) =>
                   !current
               )
             }
             className="
               flex
-              min-h-[52px]
+              min-h-[54px]
               w-full
               items-center
               gap-3
-              rounded-[16px]
-              px-4
 
-              text-sm
+              rounded-[16px]
+
+              px-3
+
+              text-[13px]
               font-medium
 
-              text-[#c3b8c8]
+              text-[#b9afc0]
 
-              transition
+              transition-all
 
-              hover:bg-white/5
-              hover:text-white
+              hover:bg-white/[0.045]
+              hover:text-[#f3edf7]
             "
           >
+            <span
+              className="
+                grid
+                h-10
+                w-10
+                shrink-0
+                place-items-center
+                rounded-[12px]
 
-            {darkMode ? (
-              <Sun
-                size={19}
-              />
-            ) : (
-              <Moon
-                size={19}
-              />
-            )}
-
-            <span>
-              {darkMode
-                ? "Light mode"
-                : "Dark mode"}
+                text-[#918698]
+              "
+            >
+              {darkMode ? (
+                <Sun
+                  size={18}
+                  strokeWidth={1.8}
+                />
+              ) : (
+                <Moon
+                  size={18}
+                  strokeWidth={1.8}
+                />
+              )}
             </span>
 
+            <span>
+              {
+                darkMode
+                  ? "Light mode"
+                  : "Dark mode"
+              }
+            </span>
           </button>
 
         </nav>
 
 
         {/* ==================================
-            DRAWER FOOTER
+            FOOTER
         ================================== */}
 
         <div
           className="
+            shrink-0
+
             border-t
             border-[#29242d]
 
             p-4
           "
         >
-
           <button
             type="button"
             onClick={
@@ -1690,16 +1718,16 @@ function Topbar({
             }
             className="
               flex
-              min-h-[50px]
+              min-h-[52px]
               w-full
               items-center
               gap-3
 
               rounded-[16px]
 
-              px-4
+              px-3
 
-              text-sm
+              text-[13px]
               font-medium
 
               text-red-400
@@ -1707,14 +1735,29 @@ function Topbar({
               transition
 
               hover:bg-red-500/10
+              hover:text-red-300
 
+              disabled:cursor-not-allowed
               disabled:opacity-50
             "
           >
+            <span
+              className="
+                grid
+                h-10
+                w-10
+                shrink-0
+                place-items-center
+                rounded-[12px]
 
-            <LogOut
-              size={19}
-            />
+                text-red-400
+              "
+            >
+              <LogOut
+                size={18}
+                strokeWidth={1.8}
+              />
+            </span>
 
             <span>
               {
@@ -1723,9 +1766,7 @@ function Topbar({
                   : "Log out"
               }
             </span>
-
           </button>
-
         </div>
 
       </aside>
