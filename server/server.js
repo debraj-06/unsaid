@@ -44,7 +44,10 @@ const searchRoutes =
 const aiRoutes =
   require("./routes/aiRoutes");
 
-
+const experienceRoutes =
+  require(
+    "./routes/experienceRoutes"
+  );
 // ==========================================
 // MODERATION
 // ==========================================
@@ -97,7 +100,10 @@ app.use(
   })
 );
 
-
+app.use(
+  "/api/experiences",
+  experienceRoutes
+);
 // ==========================================
 // COOKIES
 // ==========================================
