@@ -1,12 +1,17 @@
 import {
   Bell,
+  ChevronDown,
+  LogOut,
   Menu,
   Moon,
   Search,
   Sun,
+  UserRound,
 } from "lucide-react";
 
 import {
+  useEffect,
+  useRef,
   useState,
 } from "react";
 
@@ -28,17 +33,56 @@ function Topbar({
 
   const {
     user,
+    logout,
   } = useAuth();
+
+
+  // ==========================================
+  // SEARCH
+  // ==========================================
 
   const [
     search,
     setSearch,
   ] = useState("");
 
+
+  // ==========================================
+  // MOBILE SEARCH
+  // ==========================================
+
   const [
     mobileSearchOpen,
     setMobileSearchOpen,
   ] = useState(false);
+
+
+  // ==========================================
+  // PROFILE MENU
+  // ==========================================
+
+  const [
+    profileMenuOpen,
+    setProfileMenuOpen,
+  ] = useState(false);
+
+
+  // ==========================================
+  // LOGOUT
+  // ==========================================
+
+  const [
+    loggingOut,
+    setLoggingOut,
+  ] = useState(false);
+
+
+  // ==========================================
+  // PROFILE MENU REF
+  // ==========================================
+
+  const profileMenuRef =
+    useRef(null);
 
 
   // ==========================================
@@ -69,11 +113,83 @@ function Topbar({
 
 
   // ==========================================
-  // PROFILE
+  // CLOSE MENU ON OUTSIDE CLICK
   // ==========================================
 
-  const handleProfile =
+  useEffect(() => {
+    const handleOutsideClick =
+      (event) => {
+        if (
+          profileMenuRef.current &&
+          !profileMenuRef.current.contains(
+            event.target
+          )
+        ) {
+          setProfileMenuOpen(
+            false
+          );
+        }
+      };
+
+
+    document.addEventListener(
+      "mousedown",
+      handleOutsideClick
+    );
+
+
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        handleOutsideClick
+      );
+    };
+  }, []);
+
+
+  // ==========================================
+  // CLOSE MENU WITH ESC
+  // ==========================================
+
+  useEffect(() => {
+    const handleEscape =
+      (event) => {
+        if (
+          event.key ===
+          "Escape"
+        ) {
+          setProfileMenuOpen(
+            false
+          );
+        }
+      };
+
+
+    document.addEventListener(
+      "keydown",
+      handleEscape
+    );
+
+
+    return () => {
+      document.removeEventListener(
+        "keydown",
+        handleEscape
+      );
+    };
+  }, []);
+
+
+  // ==========================================
+  // NAVIGATE PROFILE
+  // ==========================================
+
+  const handleMySpace =
     () => {
+      setProfileMenuOpen(
+        false
+      );
+
       navigate(
         "/space"
       );
@@ -81,11 +197,15 @@ function Topbar({
 
 
   // ==========================================
-  // NOTIFICATIONS
+  // NAVIGATE NOTIFICATIONS
   // ==========================================
 
   const handleNotifications =
     () => {
+      setProfileMenuOpen(
+        false
+      );
+
       navigate(
         "/notifications"
       );
@@ -93,7 +213,47 @@ function Topbar({
 
 
   // ==========================================
-  // AVATAR LETTER
+  // LOGOUT
+  // ==========================================
+
+  const handleLogout =
+    async () => {
+      if (loggingOut) {
+        return;
+      }
+
+      try {
+        setLoggingOut(
+          true
+        );
+
+        setProfileMenuOpen(
+          false
+        );
+
+        await logout();
+
+        navigate(
+          "/login",
+          {
+            replace: true,
+          }
+        );
+      } catch (error) {
+        console.error(
+          "Logout error:",
+          error
+        );
+      } finally {
+        setLoggingOut(
+          false
+        );
+      }
+    };
+
+
+  // ==========================================
+  // AVATAR
   // ==========================================
 
   const avatarLetter =
@@ -112,16 +272,14 @@ function Topbar({
         w-full
 
         border-b
-        border-white/5
+        border-transparent
 
         bg-transparent
 
-        backdrop-blur-xl
+        backdrop-blur-[2px]
 
         transition-all
         duration-200
-
-        dark:border-white/5
       "
     >
 
@@ -182,8 +340,6 @@ function Topbar({
             aria-label="Go home"
           >
 
-            {/* LOGO */}
-
             <div
               className="
                 grid
@@ -209,12 +365,9 @@ function Topbar({
             </div>
 
 
-            {/* BRAND NAME */}
-
             <div
               className="
                 hidden
-
                 sm:block
               "
             >
@@ -368,9 +521,9 @@ function Topbar({
                     rounded-full
 
                     border
-                    border-white/10
+                    border-white/5
 
-                    bg-black/10
+                    bg-transparent
 
                     pl-11
                     pr-5
@@ -380,17 +533,13 @@ function Topbar({
 
                     outline-none
 
-                    backdrop-blur-md
-
                     transition
 
                     placeholder:text-[#817786]
 
-                    hover:border-white/15
-                    hover:bg-black/15
+                    hover:border-white/10
 
-                    focus:border-white/20
-                    focus:bg-black/20
+                    focus:border-white/15
 
                     focus:ring-4
                     focus:ring-white/5
@@ -419,7 +568,9 @@ function Topbar({
             "
           >
 
-            {/* NOTIFICATIONS */}
+            {/* ==================================
+                NOTIFICATION ICON
+            ================================== */}
 
             <button
               type="button"
@@ -443,6 +594,7 @@ function Topbar({
                 hover:text-white
               "
               aria-label="Notifications"
+              title="Notifications"
             >
 
               <Bell
@@ -453,7 +605,9 @@ function Topbar({
             </button>
 
 
-            {/* THEME */}
+            {/* ==================================
+                THEME
+            ================================== */}
 
             <button
               type="button"
@@ -502,92 +656,382 @@ function Topbar({
             </button>
 
 
-            {/* PROFILE */}
+            {/* ==================================
+                PROFILE + DROPDOWN
+            ================================== */}
 
-            <button
-              type="button"
-              onClick={
-                handleProfile
+            <div
+              ref={
+                profileMenuRef
               }
               className="
+                relative
                 ml-1
-                flex
-                shrink-0
-                items-center
-                gap-2
-
-                rounded-full
-
-                border
-                border-white/10
-
-                bg-black/10
-
-                p-1.5
-                pr-2.5
-
-                backdrop-blur-md
-
-                transition
-
-                hover:border-white/15
-                hover:bg-black/15
-
-                sm:pr-3
               "
-              aria-label="Open profile"
             >
 
-              {/* AVATAR */}
-
-              <div
+              <button
+                type="button"
+                onClick={() =>
+                  setProfileMenuOpen(
+                    (current) =>
+                      !current
+                  )
+                }
                 className="
-                  grid
-                  h-8
-                  w-8
+                  flex
                   shrink-0
-                  place-items-center
+                  items-center
+                  gap-2
+
                   rounded-full
 
-                  bg-[#eee8ff]
+                  border
+                  border-white/5
 
-                  text-xs
-                  font-semibold
-                  text-[#302839]
+                  bg-transparent
+
+                  p-1.5
+                  pr-2.5
+
+                  transition
+
+                  hover:border-white/10
+                  hover:bg-white/5
+
+                  sm:pr-3
                 "
+                aria-expanded={
+                  profileMenuOpen
+                }
+                aria-haspopup="menu"
+                aria-label="Open account menu"
               >
-                {avatarLetter}
-              </div>
+
+                {/* AVATAR */}
+
+                <div
+                  className="
+                    grid
+                    h-8
+                    w-8
+                    shrink-0
+                    place-items-center
+                    rounded-full
+
+                    bg-[#eee8ff]
+
+                    text-xs
+                    font-semibold
+                    text-[#302839]
+                  "
+                >
+                  {avatarLetter}
+                </div>
 
 
-              {/* USERNAME */}
+                {/* USERNAME */}
 
-              <span
-                className="
-                  hidden
-                  max-w-[110px]
-                  truncate
+                <span
+                  className="
+                    hidden
+                    max-w-[110px]
+                    truncate
 
-                  text-xs
-                  font-semibold
+                    text-xs
+                    font-semibold
 
-                  text-[#eee8f1]
+                    text-[#eee8f1]
 
-                  drop-shadow-sm
+                    drop-shadow-sm
 
-                  md:block
+                    md:block
 
-                  lg:max-w-[130px]
-                "
-              >
-                @{user?.username ||
-                  "user"}
-              </span>
-
-            </button>
+                    lg:max-w-[130px]
+                  "
+                >
+                  @{user?.username ||
+                    "user"}
+                </span>
 
 
-            {/* MOBILE MENU */}
+                <ChevronDown
+                  size={14}
+                  strokeWidth={2}
+                  className={`
+                    hidden
+                    text-[#8f8497]
+
+                    transition-transform
+                    duration-200
+
+                    md:block
+
+                    ${
+                      profileMenuOpen
+                        ? "rotate-180"
+                        : "rotate-0"
+                    }
+                  `}
+                />
+
+              </button>
+
+
+              {/* ==================================
+                  DROPDOWN
+              ================================== */}
+
+              {profileMenuOpen && (
+                <div
+                  role="menu"
+                  className="
+                    absolute
+                    right-0
+                    top-[calc(100%+10px)]
+                    z-[100]
+
+                    w-[220px]
+
+                    overflow-hidden
+
+                    rounded-[20px]
+
+                    border
+                    border-[#3a3340]
+
+                    bg-[#1b1820]
+
+                    p-1.5
+
+                    shadow-[0_20px_50px_rgba(0,0,0,0.35)]
+
+                    backdrop-blur-xl
+                  "
+                >
+
+                  {/* USER HEADER */}
+
+                  <div
+                    className="
+                      px-3
+                      py-3
+                    "
+                  >
+
+                    <p
+                      className="
+                        truncate
+
+                        text-xs
+                        font-semibold
+
+                        text-[#f2ebf5]
+                      "
+                    >
+                      @{user?.username ||
+                        "user"}
+                    </p>
+
+
+                    <p
+                      className="
+                        mt-1
+
+                        text-[10px]
+
+                        text-[#817786]
+                      "
+                    >
+                      Your Unsaid space
+                    </p>
+
+                  </div>
+
+
+                  <div
+                    className="
+                      my-1
+                      border-t
+                      border-[#302934]
+                    "
+                  />
+
+
+                  {/* MY SPACE */}
+
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={
+                      handleMySpace
+                    }
+                    className="
+                      flex
+                      w-full
+                      items-center
+                      gap-3
+
+                      rounded-[14px]
+
+                      px-3
+                      py-2.5
+
+                      text-left
+
+                      text-xs
+                      font-medium
+
+                      text-[#d8cedc]
+
+                      transition
+
+                      hover:bg-white/5
+                      hover:text-white
+                    "
+                  >
+
+                    <UserRound
+                      size={16}
+                      strokeWidth={1.8}
+                    />
+
+                    <span>
+                      My space
+                    </span>
+
+                  </button>
+
+
+                  {/* NOTIFICATIONS */}
+
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={
+                      handleNotifications
+                    }
+                    className="
+                      flex
+                      w-full
+                      items-center
+                      gap-3
+
+                      rounded-[14px]
+
+                      px-3
+                      py-2.5
+
+                      text-left
+
+                      text-xs
+                      font-medium
+
+                      text-[#d8cedc]
+
+                      transition
+
+                      hover:bg-white/5
+                      hover:text-white
+                    "
+                  >
+
+                    <Bell
+                      size={16}
+                      strokeWidth={1.8}
+                    />
+
+                    <span>
+                      Notifications
+                    </span>
+
+                  </button>
+
+
+                  <div
+                    className="
+                      my-1
+                      border-t
+                      border-[#302934]
+                    "
+                  />
+
+
+                  {/* LOGOUT */}
+
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={
+                      handleLogout
+                    }
+                    disabled={
+                      loggingOut
+                    }
+                    className="
+                      flex
+                      w-full
+                      items-center
+                      gap-3
+
+                      rounded-[14px]
+
+                      px-3
+                      py-2.5
+
+                      text-left
+
+                      text-xs
+                      font-medium
+
+                      text-red-400
+
+                      transition
+
+                      hover:bg-red-500/10
+                      hover:text-red-300
+
+                      disabled:cursor-not-allowed
+                      disabled:opacity-50
+                    "
+                  >
+
+                    {loggingOut ? (
+                      <span
+                        className="
+                          h-4
+                          w-4
+                          animate-spin
+                          rounded-full
+                          border-2
+                          border-red-400/30
+                          border-t-red-400
+                        "
+                      />
+                    ) : (
+                      <LogOut
+                        size={16}
+                        strokeWidth={1.8}
+                      />
+                    )}
+
+                    <span>
+                      {loggingOut
+                        ? "Logging out..."
+                        : "Log out"}
+                    </span>
+
+                  </button>
+
+                </div>
+              )}
+
+            </div>
+
+
+            {/* ==================================
+                MOBILE MENU
+            ================================== */}
 
             <button
               type="button"
@@ -633,15 +1077,15 @@ function Topbar({
         <div
           className="
             border-t
-            border-white/5
+            border-transparent
 
-            bg-black/10
+            bg-transparent
 
             px-4
             pb-4
             pt-3
 
-            backdrop-blur-xl
+            backdrop-blur-[2px]
 
             sm:px-6
 
@@ -698,9 +1142,9 @@ function Topbar({
                   rounded-full
 
                   border
-                  border-white/10
+                  border-white/5
 
-                  bg-black/10
+                  bg-transparent
 
                   pl-11
                   pr-5
@@ -710,12 +1154,9 @@ function Topbar({
 
                   outline-none
 
-                  backdrop-blur-md
-
                   placeholder:text-[#817786]
 
-                  focus:border-white/20
-                  focus:bg-black/20
+                  focus:border-white/15
 
                   focus:ring-4
                   focus:ring-white/5
