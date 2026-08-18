@@ -1,10 +1,7 @@
-const express =
-  require("express");
+const express = require("express");
 
 const authMiddleware =
-  require(
-    "../middleware/authMiddleware"
-  );
+  require("../middleware/authMiddleware");
 
 const {
   createCourtCase,
@@ -12,18 +9,10 @@ const {
   getCourtCase,
   voteOnCourtCase,
   getMyCourtCases,
-} = require(
-  "../controllers/courtController"
-);
-
+} = require("../controllers/courtController");
 
 const router =
   express.Router();
-
-
-// ==========================================
-// COURT FEED
-// ==========================================
 
 router.get(
   "/",
@@ -31,21 +20,11 @@ router.get(
   getOpenCourtCases
 );
 
-
-// ==========================================
-// MY CASES
-// ==========================================
-
 router.get(
   "/mine",
   authMiddleware,
   getMyCourtCases
 );
-
-
-// ==========================================
-// CREATE CASE
-// ==========================================
 
 router.post(
   "/",
@@ -53,28 +32,17 @@ router.post(
   createCourtCase
 );
 
-
-// ==========================================
-// GET SINGLE CASE
-// ==========================================
-
 router.get(
   "/:id",
   authMiddleware,
   getCourtCase
 );
 
-
-// ==========================================
-// VOTE
-// ==========================================
-
 router.post(
   "/:id/vote",
   authMiddleware,
   voteOnCourtCase
 );
-
 
 module.exports =
   router;

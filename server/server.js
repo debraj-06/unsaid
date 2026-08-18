@@ -1,6 +1,5 @@
 require("dotenv").config();
 
-
 const express =
   require("express");
 
@@ -48,6 +47,13 @@ const experienceRoutes =
   require(
     "./routes/experienceRoutes"
   );
+
+const courtRoutes =
+  require(
+    "./routes/courtRoutes"
+  );
+
+
 // ==========================================
 // MODERATION
 // ==========================================
@@ -100,10 +106,7 @@ app.use(
   })
 );
 
-app.use(
-  "/api/experiences",
-  experienceRoutes
-);
+
 // ==========================================
 // COOKIES
 // ==========================================
@@ -123,7 +126,7 @@ app.get(
     req,
     res
   ) => {
-    res.json({
+    return res.json({
       status:
         "ok",
 
@@ -145,6 +148,33 @@ app.use(
 
 
 // ==========================================
+// EXPERIENCE / RESONANCE ROUTES
+// ==========================================
+
+app.use(
+  "/api/experiences",
+  experienceRoutes
+);
+
+
+// ==========================================
+// COURT ROUTES
+// ==========================================
+//
+// GET  /api/court
+// GET  /api/court/mine
+// POST /api/court
+// GET  /api/court/:id
+// POST /api/court/:id/vote
+//
+
+app.use(
+  "/api/court",
+  courtRoutes
+);
+
+
+// ==========================================
 // CONTENT MODERATION
 // ==========================================
 //
@@ -157,6 +187,7 @@ app.use(
 // frontend moderation can be bypassed,
 // but server moderation cannot.
 //
+
 app.use(
   "/api/thoughts",
   contentModeration
@@ -261,7 +292,6 @@ app.use(
       error
     );
 
-
     return res.status(
       error.status ||
         500
@@ -287,7 +317,7 @@ app.listen(
   PORT,
   () => {
     console.log(
-      `Unsaid server running on http://localhost:${PORT}`
+      `Unsaid server running on port ${PORT}`
     );
   }
 );
