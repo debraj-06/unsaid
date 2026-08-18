@@ -1,18 +1,25 @@
 import {
+  Bell,
+  Bookmark,
+  ChevronRight,
   Compass,
+  Heart,
+  MessageCircle,
   Sparkles,
+  UserRound,
+  Users,
   Zap,
 } from "lucide-react";
 
 import {
   useCallback,
   useEffect,
-  useRef,
   useState,
 } from "react";
 
 import {
   useSearchParams,
+  useNavigate,
 } from "react-router-dom";
 
 import ThoughtComposer from "../components/ThoughtComposer";
@@ -32,13 +39,237 @@ import {
 
 const FEED_LIMIT = 10;
 
-const NEW_THOUGHT_POLL_MS = 15000;
+const NEW_THOUGHT_POLL_MS =
+  15000;
 
+
+// ==========================================
+// QUICK CARD
+// ==========================================
+
+function QuickCard({
+  icon: Icon,
+  title,
+  description,
+  value,
+  onClick,
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="
+        group
+        flex
+        min-w-0
+        w-full
+        items-center
+        gap-3
+        rounded-[20px]
+        border
+        border-[#e6dee9]
+        bg-white
+        p-4
+        text-left
+        transition-all
+        duration-200
+
+        hover:-translate-y-[1px]
+        hover:border-[#d6c9dc]
+        hover:shadow-[0_10px_30px_rgba(48,41,54,0.05)]
+
+        dark:border-[#342d39]
+        dark:bg-[#1b191f]
+        dark:hover:border-[#453a4c]
+        dark:hover:bg-[#1f1b23]
+      "
+    >
+      <div
+        className="
+          grid
+          h-10
+          w-10
+          shrink-0
+          place-items-center
+          rounded-[14px]
+          bg-[#f0eaf4]
+          text-[#75657f]
+
+          dark:bg-[#2a2330]
+          dark:text-[#c6b4d0]
+        "
+      >
+        <Icon
+          size={18}
+          strokeWidth={1.8}
+        />
+      </div>
+
+      <div
+        className="
+          min-w-0
+          flex-1
+        "
+      >
+        <div
+          className="
+            flex
+            items-center
+            justify-between
+            gap-2
+          "
+        >
+          <p
+            className="
+              truncate
+              text-xs
+              font-semibold
+              text-[#413747]
+
+              dark:text-[#eee7f2]
+            "
+          >
+            {title}
+          </p>
+
+          {value !== undefined && (
+            <span
+              className="
+                shrink-0
+                text-[10px]
+                font-semibold
+                text-[#8d8095]
+
+                dark:text-[#928699]
+              "
+            >
+              {value}
+            </span>
+          )}
+        </div>
+
+        <p
+          className="
+            mt-1
+            truncate
+            text-[10px]
+            leading-4
+            text-[#9b919f]
+
+            dark:text-[#817786]
+          "
+        >
+          {description}
+        </p>
+      </div>
+
+      <ChevronRight
+        size={15}
+        className="
+          shrink-0
+          text-[#9b909f]
+          transition-transform
+          duration-200
+          group-hover:translate-x-0.5
+          dark:text-[#7c7182]
+        "
+      />
+    </button>
+  );
+}
+
+
+// ==========================================
+// EMPTY FEED CARD
+// ==========================================
+
+function EmptyFeed({
+  following,
+}) {
+  return (
+    <div
+      className="
+        rounded-[24px]
+        border
+        border-[#e5dde9]
+        bg-white
+        px-6
+        py-12
+        text-center
+
+        dark:border-[#332d39]
+        dark:bg-[#1b191f]
+      "
+    >
+      <div
+        className="
+          mx-auto
+          grid
+          h-12
+          w-12
+          place-items-center
+          rounded-[16px]
+          bg-[#f0eaf4]
+          text-[#776780]
+
+          dark:bg-[#2a2330]
+          dark:text-[#c6b4d0]
+        "
+      >
+        {following ? (
+          <Users
+            size={20}
+          />
+        ) : (
+          <Sparkles
+            size={20}
+          />
+        )}
+      </div>
+
+      <p
+        className="
+          mt-4
+          text-sm
+          font-semibold
+          text-[#403747]
+
+          dark:text-[#eee7f2]
+        "
+      >
+        {following
+          ? "Your following feed is quiet."
+          : "Nothing new yet."}
+      </p>
+
+      <p
+        className="
+          mx-auto
+          mt-2
+          max-w-[360px]
+          text-xs
+          leading-5
+          text-[#9a90a0]
+
+          dark:text-[#817786]
+        "
+      >
+        {following
+          ? "Follow a few people and their thoughts will appear here."
+          : "Be the first to put something into the stream."}
+      </p>
+    </div>
+  );
+}
+
+
+// ==========================================
+// HOME
+// ==========================================
 
 function Home() {
-  // ==========================================
-  // URL
-  // ==========================================
+  const navigate =
+    useNavigate();
 
   const [
     searchParams,
@@ -82,7 +313,7 @@ function Home() {
 
 
   // ==========================================
-  // NEW THOUGHT BUFFER
+  // NEW THOUGHTS
   // ==========================================
 
   const [
@@ -142,14 +373,6 @@ function Home() {
 
 
   // ==========================================
-  // INFINITE SCROLL SENTINEL
-  // ==========================================
-
-  const loadMoreRef =
-    useRef(null);
-
-
-  // ==========================================
   // DEEP LINK
   // ==========================================
 
@@ -175,7 +398,7 @@ function Home() {
 
 
   // ==========================================
-  // INITIAL FOR YOU
+  // LOAD FOR YOU
   // ==========================================
 
   const loadInitialThoughts =
@@ -254,7 +477,8 @@ function Home() {
           setThoughts(
             (current) => [
               ...current,
-              ...(data.thoughts || []),
+              ...(data.thoughts ||
+                []),
             ]
           );
 
@@ -292,7 +516,7 @@ function Home() {
 
 
   // ==========================================
-  // INITIAL FOLLOWING
+  // LOAD FOLLOWING
   // ==========================================
 
   const loadInitialFollowing =
@@ -378,7 +602,8 @@ function Home() {
           setFollowingThoughts(
             (current) => [
               ...current,
-              ...(data.thoughts || []),
+              ...(data.thoughts ||
+                []),
             ]
           );
 
@@ -429,91 +654,36 @@ function Home() {
 
 
   // ==========================================
-  // ACTIVE FEED
+  // ACTIVE DATA
   // ==========================================
 
   const activeThoughts =
-    feedMode === "forYou"
+    feedMode ===
+    "forYou"
       ? thoughts
       : followingThoughts;
 
   const activeLoading =
-    feedMode === "forYou"
+    feedMode ===
+    "forYou"
       ? loading
       : followingLoading;
 
   const activeLoadingMore =
-    feedMode === "forYou"
+    feedMode ===
+    "forYou"
       ? loadingMore
       : followingLoadingMore;
 
   const activeHasMore =
-    feedMode === "forYou"
+    feedMode ===
+    "forYou"
       ? hasMore
       : followingHasMore;
 
 
   // ==========================================
-  // INFINITE SCROLL
-  // ==========================================
-
-  useEffect(() => {
-    const element =
-      loadMoreRef.current;
-
-    if (!element) {
-      return;
-    }
-
-    if (!activeHasMore) {
-      return;
-    }
-
-    const observer =
-      new IntersectionObserver(
-        (entries) => {
-          const entry =
-            entries[0];
-
-          if (
-            !entry?.isIntersecting
-          ) {
-            return;
-          }
-
-          if (
-            feedMode === "forYou"
-          ) {
-            loadMoreThoughts();
-          } else {
-            loadMoreFollowing();
-          }
-        },
-        {
-          root: null,
-          rootMargin:
-            "600px 0px",
-          threshold: 0,
-        }
-      );
-
-    observer.observe(
-      element
-    );
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [
-    feedMode,
-    activeHasMore,
-    loadMoreThoughts,
-    loadMoreFollowing,
-  ]);
-
-
-  // ==========================================
-  // CHECK FOR NEW THOUGHTS
+  // NEW THOUGHT POLLING
   // ==========================================
 
   const checkForNewThoughts =
@@ -533,7 +703,9 @@ function Home() {
           return;
         }
 
-        if (checkingForNew) {
+        if (
+          checkingForNew
+        ) {
           return;
         }
 
@@ -542,34 +714,19 @@ function Home() {
             true
           );
 
-          // First thought is newest
-          // because API sorts newest first.
           const newestThought =
             thoughts[0];
 
           const newestCursor =
-            typeof Buffer !==
-              "undefined"
-              ? Buffer.from(
-                  JSON.stringify({
-                    createdAt:
-                      newestThought.createdAt,
+            btoa(
+              JSON.stringify({
+                createdAt:
+                  newestThought.createdAt,
 
-                    id:
-                      newestThought.id,
-                  })
-                ).toString(
-                  "base64"
-                )
-              : btoa(
-                  JSON.stringify({
-                    createdAt:
-                      newestThought.createdAt,
-
-                    id:
-                      newestThought.id,
-                  })
-                );
+                id:
+                  newestThought.id,
+              })
+            );
 
           const data =
             await getNewThoughts(
@@ -596,7 +753,9 @@ function Home() {
                         item.id
                       ) &&
                       !thoughts.some(
-                        (existing) =>
+                        (
+                          existing
+                        ) =>
                           existing.id ===
                           item.id
                       )
@@ -628,10 +787,6 @@ function Home() {
     );
 
 
-  // ==========================================
-  // POLL
-  // ==========================================
-
   useEffect(() => {
     if (
       feedMode !==
@@ -658,7 +813,65 @@ function Home() {
 
 
   // ==========================================
-  // SHOW BUFFER
+  // WINDOW INFINITE SCROLL
+  // ==========================================
+
+  useEffect(() => {
+    const handleScroll =
+      () => {
+        const scrollTop =
+          window.scrollY;
+
+        const viewportHeight =
+          window.innerHeight;
+
+        const documentHeight =
+          document.documentElement
+            .scrollHeight;
+
+        const distanceFromBottom =
+          documentHeight -
+          (scrollTop +
+            viewportHeight);
+
+        if (
+          distanceFromBottom <
+          600
+        ) {
+          if (
+            feedMode ===
+            "forYou"
+          ) {
+            loadMoreThoughts();
+          } else {
+            loadMoreFollowing();
+          }
+        }
+      };
+
+    window.addEventListener(
+      "scroll",
+      handleScroll,
+      {
+        passive: true,
+      }
+    );
+
+    return () => {
+      window.removeEventListener(
+        "scroll",
+        handleScroll
+      );
+    };
+  }, [
+    feedMode,
+    loadMoreThoughts,
+    loadMoreFollowing,
+  ]);
+
+
+  // ==========================================
+  // NEW THOUGHT BAR
   // ==========================================
 
   const showNewThoughtBar =
@@ -700,26 +913,175 @@ function Home() {
 
       setNewThoughts([]);
 
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          const newHeight =
-            document.documentElement
-              .scrollHeight;
+      requestAnimationFrame(
+        () => {
+          requestAnimationFrame(
+            () => {
+              const newHeight =
+                document.documentElement
+                  .scrollHeight;
 
-          const heightDifference =
-            newHeight -
-            previousHeight;
+              const heightDifference =
+                newHeight -
+                previousHeight;
 
-          window.scrollTo({
-            top:
-              previousScrollY +
-              heightDifference,
+              window.scrollTo({
+                top:
+                  previousScrollY +
+                  heightDifference,
 
-            behavior:
-              "auto",
-          });
-        });
-      });
+                behavior:
+                  "instant",
+              });
+            }
+          );
+        }
+      );
+    };
+
+
+  // ==========================================
+  // CREATE
+  // ==========================================
+
+  const handleThoughtCreated =
+    async () => {
+      await loadInitialThoughts();
+
+      setNewThoughts([]);
+
+      if (
+        feedMode ===
+        "following"
+      ) {
+        await loadInitialFollowing();
+      }
+    };
+
+
+  // ==========================================
+  // DELETE
+  // ==========================================
+
+  const handleDeleted =
+    (id) => {
+      setThoughts(
+        (current) =>
+          current.filter(
+            (thought) =>
+              thought.id !==
+              id
+          )
+      );
+
+      setFollowingThoughts(
+        (current) =>
+          current.filter(
+            (thought) =>
+              thought.id !==
+              id
+          )
+      );
+
+      setNewThoughts(
+        (current) =>
+          current.filter(
+            (thought) =>
+              thought.id !==
+              id
+          )
+      );
+    };
+
+
+  // ==========================================
+  // UPDATE
+  // ==========================================
+
+  const handleUpdated =
+    (updatedThought) => {
+      setThoughts(
+        (current) =>
+          current.map(
+            (thought) =>
+              thought.id ===
+              updatedThought.id
+                ? updatedThought
+                : thought
+          )
+      );
+
+      setFollowingThoughts(
+        (current) =>
+          current.map(
+            (thought) =>
+              thought.id ===
+              updatedThought.id
+                ? updatedThought
+                : thought
+          )
+      );
+
+      setNewThoughts(
+        (current) =>
+          current.map(
+            (thought) =>
+              thought.id ===
+              updatedThought.id
+                ? updatedThought
+                : thought
+          )
+      );
+
+      if (
+        openedThoughtId ===
+        updatedThought.id
+      ) {
+        setOpenedThought(
+          updatedThought
+        );
+      }
+    };
+
+
+  // ==========================================
+  // FEED CHANGE
+  // ==========================================
+
+  const handleFeedChange =
+    async (mode) => {
+      setFeedMode(mode);
+
+      if (
+        mode ===
+          "following" &&
+        followingThoughts.length ===
+          0
+      ) {
+        await loadInitialFollowing();
+      }
+    };
+
+
+  // ==========================================
+  // CLOSE CONVERSATION
+  // ==========================================
+
+  const handleCloseConversation =
+    () => {
+      setOpenedThoughtId(
+        null
+      );
+
+      setOpenedThought(
+        null
+      );
+
+      setDeepLinkError(
+        ""
+      );
+
+      setSearchParams({});
     };
 
 
@@ -740,8 +1102,7 @@ function Home() {
 
     if (
       !thoughtId ||
-      conversation !==
-        "1"
+      conversation !== "1"
     ) {
       setOpenedThoughtId(
         null
@@ -837,175 +1198,77 @@ function Home() {
 
 
   // ==========================================
-  // CREATE
+  // LOADING
   // ==========================================
 
-  const handleThoughtCreated =
-    async () => {
-      await loadInitialThoughts();
+  if (
+    loading &&
+    feedMode ===
+      "forYou"
+  ) {
+    return (
+      <div
+        className="
+          mx-auto
+          flex
+          min-h-[500px]
+          w-full
+          max-w-[1200px]
+          items-center
+          justify-center
+          px-4
+        "
+      >
+        <div
+          className="
+            flex
+            items-center
+            gap-3
+            text-sm
+            text-[#968c9c]
 
-      setNewThoughts([]);
+            dark:text-[#817786]
+          "
+        >
+          <span
+            className="
+              h-5
+              w-5
+              animate-spin
+              rounded-full
+              border-2
+              border-[#ddd4e2]
+              border-t-[#806d8f]
 
-      if (
-        feedMode ===
-        "following"
-      ) {
-        await loadInitialFollowing();
-      }
-    };
+              dark:border-[#39323e]
+              dark:border-t-[#c7b3d2]
+            "
+          />
 
+          Loading your space...
+        </div>
+      </div>
+    );
+  }
 
-  // ==========================================
-  // DELETE
-  // ==========================================
-
-  const handleDeleted =
-    (id) => {
-      setThoughts(
-        (current) =>
-          current.filter(
-            (thought) =>
-              thought.id !==
-              id
-          )
-      );
-
-      setFollowingThoughts(
-        (current) =>
-          current.filter(
-            (thought) =>
-              thought.id !==
-              id
-          )
-      );
-
-      setNewThoughts(
-        (current) =>
-          current.filter(
-            (thought) =>
-              thought.id !==
-              id
-          )
-      );
-
-      if (
-        openedThoughtId ===
-        id
-      ) {
-        setOpenedThoughtId(
-          null
-        );
-
-        setOpenedThought(
-          null
-        );
-      }
-    };
-
-
-  // ==========================================
-  // UPDATE
-  // ==========================================
-
-  const handleUpdated =
-    (updatedThought) => {
-      setThoughts(
-        (current) =>
-          current.map(
-            (thought) =>
-              thought.id ===
-              updatedThought.id
-                ? updatedThought
-                : thought
-          )
-      );
-
-      setFollowingThoughts(
-        (current) =>
-          current.map(
-            (thought) =>
-              thought.id ===
-              updatedThought.id
-                ? updatedThought
-                : thought
-          )
-      );
-
-      setNewThoughts(
-        (current) =>
-          current.map(
-            (thought) =>
-              thought.id ===
-              updatedThought.id
-                ? updatedThought
-                : thought
-          )
-      );
-
-      if (
-        openedThoughtId ===
-        updatedThought.id
-      ) {
-        setOpenedThought(
-          updatedThought
-        );
-      }
-    };
-
-
-  // ==========================================
-  // CHANGE FEED
-  // ==========================================
-
-  const handleFeedChange =
-    async (mode) => {
-      setFeedMode(mode);
-
-      if (
-        mode ===
-          "following" &&
-        followingThoughts.length ===
-          0
-      ) {
-        await loadInitialFollowing();
-      }
-    };
-
-
-  // ==========================================
-  // CLOSE CONVERSATION
-  // ==========================================
-
-  const handleCloseConversation =
-    () => {
-      setOpenedThoughtId(
-        null
-      );
-
-      setOpenedThought(
-        null
-      );
-
-      setDeepLinkError(
-        ""
-      );
-
-      setSearchParams({});
-    };
-
-
-  // ==========================================
-  // RENDER
-  // ==========================================
 
   return (
     <>
+      {/* ======================================
+          MAIN PAGE
+      ====================================== */}
+
       <div
         className="
           mx-auto
           w-full
-          max-w-[900px]
-          space-y-8
+          max-w-[1200px]
+
+          space-y-5
+
+          px-1
+
+          sm:space-y-6
         "
       >
 
@@ -1015,67 +1278,225 @@ function Home() {
 
         <section
           className="
-            pt-1
+            rounded-[28px]
+            border
+            border-[#e6dee9]
+            bg-white
+            p-5
+
+            dark:border-[#342d39]
+            dark:bg-[#1b191f]
+
+            sm:p-7
           "
         >
-
           <div
             className="
               flex
               items-center
               gap-2
-              text-[10px]
+              text-[9px]
               font-bold
-              tracking-[0.18em]
               uppercase
+              tracking-[0.18em]
               text-[#96899f]
 
               dark:text-[#a296ab]
             "
           >
-
             <Sparkles
               size={13}
             />
 
             a place for thoughts
-
           </div>
 
 
-          <h1
+          <div
             className="
               mt-3
-              max-w-[720px]
-              text-4xl
-              font-semibold
-              tracking-[-0.05em]
-              text-[#2f2935]
 
-              dark:text-[#f4edf7]
+              flex
+              flex-col
+              gap-5
 
-              sm:text-5xl
+              lg:flex-row
+              lg:items-end
+              lg:justify-between
             "
           >
-            What's worth saying today?
-          </h1>
+            <div>
+              <h1
+                className="
+                  max-w-[760px]
+                  text-3xl
+                  font-semibold
+                  tracking-[-0.05em]
+                  text-[#2f2935]
+
+                  dark:text-[#f4edf7]
+
+                  sm:text-4xl
+
+                  xl:text-5xl
+                "
+              >
+                What's worth saying today?
+              </h1>
+
+              <p
+                className="
+                  mt-3
+                  max-w-[620px]
+                  text-sm
+                  leading-6
+                  text-[#8f8595]
+
+                  dark:text-[#9c92a3]
+                "
+              >
+                No real identity required.
+                Just bring the thought.
+              </p>
+            </div>
 
 
-          <p
-            className="
-              mt-3
-              max-w-[620px]
-              text-sm
-              leading-6
-              text-[#8f8595]
+            {/* COMPACT STATS */}
 
-              dark:text-[#9c92a3]
-            "
-          >
-            No real identity required.
-            Just bring the thought.
-          </p>
+            <div
+              className="
+                grid
+                grid-cols-2
+                gap-2
 
+                sm:grid-cols-3
+
+                lg:min-w-[300px]
+              "
+            >
+              <div
+                className="
+                  rounded-[16px]
+                  border
+                  border-[#ece5ee]
+                  bg-[#faf8fb]
+                  px-3
+                  py-2.5
+
+                  dark:border-[#302a34]
+                  dark:bg-[#151319]
+                "
+              >
+                <p
+                  className="
+                    text-[9px]
+                    uppercase
+                    tracking-[0.12em]
+                    text-[#9d92a2]
+                  "
+                >
+                  Feed
+                </p>
+
+                <p
+                  className="
+                    mt-1
+                    text-sm
+                    font-semibold
+                    text-[#403747]
+
+                    dark:text-[#eee7f2]
+                  "
+                >
+                  {activeThoughts.length}
+                </p>
+              </div>
+
+
+              <div
+                className="
+                  rounded-[16px]
+                  border
+                  border-[#ece5ee]
+                  bg-[#faf8fb]
+                  px-3
+                  py-2.5
+
+                  dark:border-[#302a34]
+                  dark:bg-[#151319]
+                "
+              >
+                <p
+                  className="
+                    text-[9px]
+                    uppercase
+                    tracking-[0.12em]
+                    text-[#9d92a2]
+                  "
+                >
+                  Mode
+                </p>
+
+                <p
+                  className="
+                    mt-1
+                    text-sm
+                    font-semibold
+                    text-[#403747]
+
+                    dark:text-[#eee7f2]
+                  "
+                >
+                  {feedMode ===
+                  "forYou"
+                    ? "For you"
+                    : "Following"}
+                </p>
+              </div>
+
+
+              <div
+                className="
+                  hidden
+                  rounded-[16px]
+                  border
+                  border-[#ece5ee]
+                  bg-[#faf8fb]
+                  px-3
+                  py-2.5
+
+                  dark:border-[#302a34]
+                  dark:bg-[#151319]
+
+                  sm:block
+                "
+              >
+                <p
+                  className="
+                    text-[9px]
+                    uppercase
+                    tracking-[0.12em]
+                    text-[#9d92a2]
+                  "
+                >
+                  Stream
+                </p>
+
+                <p
+                  className="
+                    mt-1
+                    text-sm
+                    font-semibold
+                    text-[#403747]
+
+                    dark:text-[#eee7f2]
+                  "
+                >
+                  Live
+                </p>
+              </div>
+            </div>
+          </div>
         </section>
 
 
@@ -1083,60 +1504,158 @@ function Home() {
             COMPOSER
         ==================================== */}
 
-        <ThoughtComposer
-          onCreated={
-            handleThoughtCreated
-          }
-        />
+        <section>
+          <ThoughtComposer
+            onCreated={
+              handleThoughtCreated
+            }
+          />
+        </section>
 
 
         {/* ====================================
-            FEED HEADER
+            QUICK CARDS
         ==================================== */}
 
-        <section>
+        <section
+          className="
+            grid
+            grid-cols-1
+            gap-3
+
+            sm:grid-cols-2
+
+            xl:grid-cols-4
+          "
+        >
+          <QuickCard
+            icon={
+              Compass
+            }
+            title="Discover"
+            description="Find new people and ideas."
+            onClick={() =>
+              navigate(
+                "/discover"
+              )
+            }
+          />
+
+          <QuickCard
+            icon={
+              Bookmark
+            }
+            title="Saved"
+            description="Keep the thoughts you want nearby."
+            onClick={() =>
+              navigate(
+                "/saved"
+              )
+            }
+          />
+
+          <QuickCard
+            icon={
+              Bell
+            }
+            title="Notifications"
+            description="See mentions, follows, and activity."
+            onClick={() =>
+              navigate(
+                "/notifications"
+              )
+            }
+          />
+
+          <QuickCard
+            icon={
+              UserRound
+            }
+            title="My space"
+            description="Your thoughts, profile, and followers."
+            onClick={() =>
+              navigate(
+                "/space"
+              )
+            }
+          />
+        </section>
+
+
+        {/* ====================================
+            THOUGHT FEED CARD
+        ==================================== */}
+
+        <section
+          className="
+            rounded-[28px]
+            border
+            border-[#e6dee9]
+            bg-white
+            p-4
+
+            dark:border-[#342d39]
+            dark:bg-[#1b191f]
+
+            sm:p-5
+          "
+        >
+
+          {/* FEED HEADER */}
 
           <div
             className="
-              mb-5
               flex
               flex-col
               gap-4
 
               sm:flex-row
-              sm:items-end
+              sm:items-center
               sm:justify-between
             "
           >
 
             <div>
-
-              <p
+              <div
                 className="
-                  text-sm
-                  font-semibold
-                  text-[#362f3d]
-
-                  dark:text-[#eee7f2]
+                  flex
+                  items-center
+                  gap-2
                 "
               >
-                Thoughts
-              </p>
+                <Sparkles
+                  size={15}
+                  className="
+                    text-[#806d8f]
 
+                    dark:text-[#c6b4d0]
+                  "
+                />
+
+                <p
+                  className="
+                    text-sm
+                    font-semibold
+                    text-[#362f3d]
+
+                    dark:text-[#eee7f2]
+                  "
+                >
+                  Thoughts
+                </p>
+              </div>
 
               <p
                 className="
                   mt-1
-                  text-xs
+                  text-[10px]
                   text-[#9a90a0]
 
                   dark:text-[#817786]
                 "
               >
-                Keep scrolling. The stream
-                continues automatically.
+                A quieter stream of things worth saying.
               </p>
-
             </div>
 
 
@@ -1149,15 +1668,13 @@ function Home() {
                 rounded-full
                 border
                 border-[#ddd4e2]
-                bg-white
+                bg-[#faf8fb]
                 p-1
-                shadow-sm
 
                 dark:border-[#3a3340]
-                dark:bg-[#1d1921]
+                dark:bg-[#151319]
               "
             >
-
               <button
                 type="button"
                 onClick={() =>
@@ -1169,7 +1686,7 @@ function Home() {
                   rounded-full
                   px-4
                   py-2
-                  text-[11px]
+                  text-[10px]
                   font-semibold
                   transition
 
@@ -1184,7 +1701,6 @@ function Home() {
                 For you
               </button>
 
-
               <button
                 type="button"
                 onClick={() =>
@@ -1196,7 +1712,7 @@ function Home() {
                   rounded-full
                   px-4
                   py-2
-                  text-[11px]
+                  text-[10px]
                   font-semibold
                   transition
 
@@ -1210,15 +1726,11 @@ function Home() {
               >
                 Following
               </button>
-
             </div>
-
           </div>
 
 
-          {/* ====================================
-              NEW THOUGHT BAR
-          ==================================== */}
+          {/* NEW THOUGHT CARD */}
 
           {showNewThoughtBar && (
             <button
@@ -1227,23 +1739,24 @@ function Home() {
                 handleShowNewThoughts
               }
               className="
-                mb-5
+                mt-4
                 flex
                 w-full
                 items-center
-                justify-center
-                gap-2
+                justify-between
+                gap-3
                 rounded-[18px]
                 border
                 border-[#d8cae0]
-                bg-[#f4eef7]
+                bg-[#f5eff8]
                 px-4
                 py-3
+                text-left
                 text-xs
                 font-semibold
                 text-[#675675]
-                shadow-sm
                 transition
+
                 hover:bg-[#ede4f1]
 
                 dark:border-[#493a52]
@@ -1252,47 +1765,52 @@ function Home() {
                 dark:hover:bg-[#332938]
               "
             >
-
-              <Zap
-                size={15}
+              <span
                 className="
-                  fill-current
+                  flex
+                  items-center
+                  gap-2
                 "
-              />
+              >
+                <Zap
+                  size={14}
+                  className="fill-current"
+                />
 
-              {newThoughts.length ===
-              1
-                ? "1 new thought"
-                : `${newThoughts.length} new thoughts`}
+                {newThoughts.length ===
+                1
+                  ? "1 new thought"
+                  : `${newThoughts.length} new thoughts`}
+              </span>
 
               <span
                 className="
+                  text-[9px]
+                  font-medium
                   opacity-60
                 "
               >
-                · tap to reveal
+                Tap to reveal
               </span>
-
             </button>
           )}
 
 
-          {/* ====================================
-              ERRORS
-          ==================================== */}
+          {/* ERROR */}
 
           {feedMode ===
             "forYou" &&
             error && (
               <div
                 className="
-                  mb-4
-                  rounded-[22px]
+                  mt-4
+                  rounded-[18px]
                   border
                   border-red-200
                   bg-red-50
-                  p-5
-                  text-sm
+                  px-4
+                  py-3
+                  text-xs
                   text-red-700
 
                   dark:border-red-900/50
@@ -1310,13 +1828,14 @@ function Home() {
             followingError && (
               <div
                 className="
-                  mb-4
-                  rounded-[22px]
+                  mt-4
+                  rounded-[18px]
                   border
                   border-red-200
                   bg-red-50
-                  p-5
-                  text-sm
+                  px-4
+                  py-3
+                  text-xs
                   text-red-700
 
                   dark:border-red-900/50
@@ -1329,72 +1848,67 @@ function Home() {
             )}
 
 
-          {/* ====================================
-              INITIAL LOADING
-          ==================================== */}
+          {/* FEED */}
 
-          {activeLoading && (
-            <div
-              className="
-                rounded-[26px]
-                border
-                border-[#e5dde9]
-                bg-white
-                p-8
-                text-center
-
-                dark:border-[#332d39]
-                dark:bg-[#1b191f]
-              "
-            >
-
+          <div
+            className="
+              mt-4
+            "
+          >
+            {activeLoading ? (
               <div
                 className="
-                  mx-auto
-                  h-7
-                  w-7
-                  animate-spin
-                  rounded-full
-                  border-2
-                  border-[#ddd4e2]
-                  border-t-[#806d8f]
+                  rounded-[22px]
+                  border
+                  border-[#ece5ee]
+                  bg-[#faf8fb]
+                  px-6
+                  py-12
+                  text-center
 
-                  dark:border-[#3b3341]
-                  dark:border-t-[#cbb6d5]
-                "
-              />
-
-              <p
-                className="
-                  mt-4
-                  text-sm
-                  text-[#8f8595]
-
-                  dark:text-[#9b91a2]
+                  dark:border-[#302a34]
+                  dark:bg-[#151319]
                 "
               >
-                Loading thoughts...
-              </p>
+                <div
+                  className="
+                    mx-auto
+                    h-7
+                    w-7
+                    animate-spin
+                    rounded-full
+                    border-2
+                    border-[#ddd4e2]
+                    border-t-[#806d8f]
 
-            </div>
-          )}
+                    dark:border-[#3b3341]
+                    dark:border-t-[#cbb6d5]
+                  "
+                />
 
+                <p
+                  className="
+                    mt-4
+                    text-xs
+                    text-[#8f8595]
 
-          {/* ====================================
-              STREAM
-          ==================================== */}
-
-          {!activeLoading &&
-            activeThoughts.length >
-              0 && (
+                    dark:text-[#817786]
+                  "
+                >
+                  Loading thoughts...
+                </p>
+              </div>
+            ) : activeThoughts.length >
+              0 ? (
               <div
                 className="
                   space-y-4
                 "
               >
-
                 {activeThoughts.map(
-                  (thought) => (
+                  (
+                    thought
+                  ) => (
                     <ThoughtCard
                       key={
                         thought.id
@@ -1411,92 +1925,30 @@ function Home() {
                     />
                   )
                 )}
-
               </div>
-            )}
-
-
-          {/* ====================================
-              EMPTY STATE
-          ==================================== */}
-
-          {!activeLoading &&
-            activeThoughts.length ===
-              0 &&
-            !activeError && (
-              <div
-                className="
-                  rounded-[26px]
-                  border
-                  border-dashed
-                  border-[#ded5e3]
-                  bg-white
-                  p-10
-                  text-center
-
-                  dark:border-[#39313f]
-                  dark:bg-[#1b191f]
-                "
-              >
-
-                <div
-                  className="
-                    mx-auto
-                    grid
-                    h-12
-                    w-12
-                    place-items-center
-                    rounded-full
-                    bg-[#eee7f4]
-                    text-[#806d8f]
-
-                    dark:bg-[#292230]
-                    dark:text-[#c5b3d1]
-                  "
-                >
-                  <Compass
-                    size={20}
-                  />
-                </div>
-
-
-                <p
-                  className="
-                    mt-4
-                    text-sm
-                    font-semibold
-                    text-[#403747]
-
-                    dark:text-[#eee7f2]
-                  "
-                >
-                  {feedMode ===
+            ) : (
+              <EmptyFeed
+                following={
+                  feedMode ===
                   "following"
-                    ? "You're not following anyone yet."
-                    : "No thoughts to show right now."}
-                </p>
-
-              </div>
+                }
+              />
             )}
+          </div>
 
 
-          {/* ====================================
-              AUTO LOAD SENTINEL
-          ==================================== */}
+          {/* LOAD MORE */}
 
           {activeHasMore && (
             <div
-              ref={
-                loadMoreRef
-              }
               className="
+                mt-4
                 flex
-                min-h-[110px]
+                min-h-[72px]
                 items-center
                 justify-center
               "
             >
-
               {activeLoadingMore ? (
                 <div
                   className="
@@ -1509,7 +1961,6 @@ function Home() {
                     dark:text-[#898090]
                   "
                 >
-
                   <span
                     className="
                       h-4
@@ -1526,54 +1977,267 @@ function Home() {
                   />
 
                   Finding more thoughts...
-
                 </div>
               ) : (
                 <span
                   className="
-                    text-[10px]
-                    text-[#aaa0ad]
+                    rounded-full
+                    border
+                    border-[#ece5ee]
+                    bg-[#faf8fb]
+                    px-4
+                    py-2
+                    text-[9px]
+                    font-medium
+                    text-[#978c9e]
 
+                    dark:border-[#302a34]
+                    dark:bg-[#151319]
                     dark:text-[#746a79]
                   "
                 >
-                  Loading more...
+                  Keep scrolling
                 </span>
               )}
-
             </div>
           )}
 
 
-          {/* ====================================
-              END
-          ==================================== */}
+          {/* END */}
 
           {!activeHasMore &&
             activeThoughts.length >
               0 && (
               <div
                 className="
-                  py-10
-                  text-center
+                  mt-4
+                  flex
+                  items-center
+                  justify-center
+                  border-t
+                  border-[#eee8f0]
+                  pt-6
+
+                  dark:border-[#2d2731]
                 "
               >
-
                 <span
                   className="
-                    text-[10px]
+                    text-[9px]
                     font-medium
                     text-[#aaa0ad]
 
                     dark:text-[#746a79]
                   "
                 >
-                  You've reached the quieter end
-                  of the stream.
+                  You've reached the quieter end of the stream.
                 </span>
-
               </div>
             )}
+
+        </section>
+
+
+        {/* ====================================
+            SMALL DISCOVERY CARD
+        ==================================== */}
+
+        <section
+          className="
+            grid
+            grid-cols-1
+            gap-3
+
+            md:grid-cols-3
+          "
+        >
+
+          <button
+            type="button"
+            onClick={() =>
+              navigate(
+                "/discover"
+              )
+            }
+            className="
+              group
+              rounded-[22px]
+              border
+              border-[#e6dee9]
+              bg-gradient-to-br
+              from-[#f7f1fa]
+              to-white
+              p-5
+              text-left
+              transition
+
+              hover:-translate-y-[1px]
+              hover:shadow-[0_10px_30px_rgba(48,41,54,0.05)]
+
+              dark:border-[#342d39]
+              dark:from-[#251f2a]
+              dark:to-[#1b191f]
+            "
+          >
+            <Compass
+              size={18}
+              className="
+                text-[#806d8f]
+
+                dark:text-[#c6b4d0]
+              "
+            />
+
+            <p
+              className="
+                mt-4
+                text-sm
+                font-semibold
+                text-[#403747]
+
+                dark:text-[#eee7f2]
+              "
+            >
+              Find something unexpected.
+            </p>
+
+            <p
+              className="
+                mt-1
+                text-[10px]
+                leading-5
+                text-[#9b919f]
+
+                dark:text-[#817786]
+              "
+            >
+              Explore people, thoughts, and ideas outside your usual feed.
+            </p>
+          </button>
+
+
+          <button
+            type="button"
+            onClick={() =>
+              navigate(
+                "/saved"
+              )
+            }
+            className="
+              group
+              rounded-[22px]
+              border
+              border-[#e6dee9]
+              bg-white
+              p-5
+              text-left
+              transition
+
+              hover:-translate-y-[1px]
+              hover:border-[#d6c9dc]
+              hover:shadow-[0_10px_30px_rgba(48,41,54,0.05)]
+
+              dark:border-[#342d39]
+              dark:bg-[#1b191f]
+            "
+          >
+            <Bookmark
+              size={18}
+              className="
+                text-[#806d8f]
+
+                dark:text-[#c6b4d0]
+              "
+            />
+
+            <p
+              className="
+                mt-4
+                text-sm
+                font-semibold
+                text-[#403747]
+
+                dark:text-[#eee7f2]
+              "
+            >
+              Keep what stays with you.
+            </p>
+
+            <p
+              className="
+                mt-1
+                text-[10px]
+                leading-5
+                text-[#9b919f]
+
+                dark:text-[#817786]
+              "
+            >
+              Your saved thoughts are only one tap away.
+            </p>
+          </button>
+
+
+          <button
+            type="button"
+            onClick={() =>
+              navigate(
+                "/space"
+              )
+            }
+            className="
+              group
+              rounded-[22px]
+              border
+              border-[#e6dee9]
+              bg-white
+              p-5
+              text-left
+              transition
+
+              hover:-translate-y-[1px]
+              hover:border-[#d6c9dc]
+              hover:shadow-[0_10px_30px_rgba(48,41,54,0.05)]
+
+              dark:border-[#342d39]
+              dark:bg-[#1b191f]
+            "
+          >
+            <UserRound
+              size={18}
+              className="
+                text-[#806d8f]
+
+                dark:text-[#c6b4d0]
+              "
+            />
+
+            <p
+              className="
+                mt-4
+                text-sm
+                font-semibold
+                text-[#403747]
+
+                dark:text-[#eee7f2]
+              "
+            >
+              Your space, your words.
+            </p>
+
+            <p
+              className="
+                mt-1
+                text-[10px]
+                leading-5
+                text-[#9b919f]
+
+                dark:text-[#817786]
+              "
+            >
+              Manage your thoughts, followers, and profile.
+            </p>
+          </button>
 
         </section>
 
@@ -1597,7 +2261,6 @@ function Home() {
             backdrop-blur-sm
           "
         >
-
           <div
             className="
               rounded-2xl
@@ -1618,7 +2281,6 @@ function Home() {
           >
             Opening conversation...
           </div>
-
         </div>
       )}
 
@@ -1651,9 +2313,7 @@ function Home() {
             dark:text-red-400
           "
         >
-
           {deepLinkError}
-
 
           <button
             type="button"
@@ -1672,7 +2332,6 @@ function Home() {
           >
             Close
           </button>
-
         </div>
       )}
 
@@ -1691,7 +2350,6 @@ function Home() {
           }
         />
       )}
-
     </>
   );
 }
