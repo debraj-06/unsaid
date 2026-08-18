@@ -24,6 +24,7 @@ import PublicProfile from "./pages/PublicProfile";
 import Notifications from "./pages/Notifications";
 import Search from "./pages/Search";
 import Discover from "./pages/Discover";
+import Court from "./pages/Court";
 
 
 // ==========================================
@@ -46,6 +47,7 @@ function ProtectedRoute({
           grid
           min-h-screen
           place-items-center
+
           bg-[#faf8fa]
 
           dark:bg-[#121016]
@@ -57,6 +59,7 @@ function ProtectedRoute({
             w-7
             animate-spin
             rounded-full
+
             border-2
             border-[#ddd4e2]
             border-t-[#806d8f]
@@ -104,6 +107,7 @@ function PublicOnlyRoute({
           grid
           min-h-screen
           place-items-center
+
           bg-[#faf8fa]
 
           dark:bg-[#121016]
@@ -115,6 +119,7 @@ function PublicOnlyRoute({
             w-7
             animate-spin
             rounded-full
+
             border-2
             border-[#ddd4e2]
             border-t-[#806d8f]
@@ -216,7 +221,7 @@ function App() {
 
 
       {/* ======================================
-          APP
+          PROTECTED APP
       ====================================== */}
 
       <Route
@@ -234,10 +239,17 @@ function App() {
         }
       >
 
+        {/* HOME */}
+
         <Route
           path="/"
-          element={<Home />}
+          element={
+            <Home />
+          }
         />
+
+
+        {/* DISCOVER */}
 
         <Route
           path="/discover"
@@ -246,12 +258,28 @@ function App() {
           }
         />
 
+
+        {/* COURT */}
+
+        <Route
+          path="/court"
+          element={
+            <Court />
+          }
+        />
+
+
+        {/* SEARCH */}
+
         <Route
           path="/search"
           element={
             <Search />
           }
         />
+
+
+        {/* SAVED */}
 
         <Route
           path="/saved"
@@ -260,6 +288,9 @@ function App() {
           }
         />
 
+
+        {/* NOTIFICATIONS */}
+
         <Route
           path="/notifications"
           element={
@@ -267,12 +298,18 @@ function App() {
           }
         />
 
+
+        {/* MY PROFILE */}
+
         <Route
           path="/profile"
           element={
             <Profile />
           }
         />
+
+
+        {/* PUBLIC PROFILE */}
 
         <Route
           path="/user/:username"
@@ -301,5 +338,6 @@ function App() {
     </Routes>
   );
 }
+
 
 export default App;
