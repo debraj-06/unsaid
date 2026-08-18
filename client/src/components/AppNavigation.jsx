@@ -1,5 +1,4 @@
 import {
-  Bell,
   Bookmark,
   Compass,
   Gavel,
@@ -7,13 +6,19 @@ import {
   UserRound,
 } from "lucide-react";
 
-import { NavLink } from "react-router-dom";
+import {
+  NavLink,
+} from "react-router-dom";
 
-import { useAuth } from "../context/AuthContext";
+import {
+  useAuth,
+} from "../context/AuthContext";
 
 
 function AppNavigation() {
-  const { user } = useAuth();
+  const {
+    user,
+  } = useAuth();
 
 
   const navigationItems = [
@@ -43,12 +48,6 @@ function AppNavigation() {
     },
 
     {
-      to: "/notifications",
-      label: "Notifications",
-      icon: Bell,
-    },
-
-    {
       to: "/profile",
       label: "My space",
       icon: UserRound,
@@ -70,7 +69,9 @@ function AppNavigation() {
         "
       >
 
-        {/* USER CARD */}
+        {/* ====================================
+            USER CARD
+        ==================================== */}
 
         {user && (
           <div
@@ -86,7 +87,15 @@ function AppNavigation() {
               dark:bg-[#1b191f]
             "
           >
-            <div className="flex items-center gap-3">
+            <div
+              className="
+                flex
+                items-center
+                gap-3
+              "
+            >
+
+              {/* AVATAR */}
 
               <div
                 className="
@@ -96,24 +105,38 @@ function AppNavigation() {
                   shrink-0
                   place-items-center
                   rounded-full
+
                   bg-[#eee8ff]
+
                   text-[11px]
                   font-bold
                   uppercase
+
                   text-[#302839]
                 "
               >
-                {user.username?.charAt(0) || "U"}
+                {
+                  user.username?.charAt(
+                    0
+                  ) || "U"
+                }
               </div>
 
 
-              <div className="min-w-0">
+              {/* USERNAME */}
+
+              <div
+                className="
+                  min-w-0
+                "
+              >
 
                 <p
                   className="
                     truncate
                     text-xs
                     font-semibold
+
                     text-[#3f3645]
 
                     dark:text-[#eee7f2]
@@ -127,6 +150,7 @@ function AppNavigation() {
                   className="
                     mt-0.5
                     text-[10px]
+
                     text-[#9b919f]
 
                     dark:text-[#817786]
@@ -142,9 +166,15 @@ function AppNavigation() {
         )}
 
 
-        {/* NAV ITEMS */}
+        {/* ====================================
+            DESKTOP NAVIGATION
+        ==================================== */}
 
-        <div className="space-y-1">
+        <div
+          className="
+            space-y-1
+          "
+        >
 
           {navigationItems.map(
             ({
@@ -164,10 +194,14 @@ function AppNavigation() {
                   w-full
                   items-center
                   gap-3
+
                   rounded-[16px]
+
                   px-3.5
                   py-3
+
                   text-sm
+
                   transition-colors
                   duration-150
 
@@ -177,9 +211,12 @@ function AppNavigation() {
                         bg-[#eee8ff]
                         font-semibold
                         shadow-sm
+
+                        text-[#302839]
                       `
                       : `
                         font-medium
+
                         text-[#736879]
 
                         hover:bg-[#f2edf4]
@@ -194,11 +231,13 @@ function AppNavigation() {
                 style={({
                   isActive,
                 }) => ({
-                  color: isActive
-                    ? "#302839"
-                    : undefined,
+                  color:
+                    isActive
+                      ? "#302839"
+                      : undefined,
                 })}
               >
+
                 {({
                   isActive,
                 }) => (
@@ -210,7 +249,9 @@ function AppNavigation() {
                           ? 2.2
                           : 1.8
                       }
-                      className="shrink-0"
+                      className="
+                        shrink-0
+                      "
                       style={{
                         color:
                           isActive
@@ -219,11 +260,16 @@ function AppNavigation() {
                       }}
                     />
 
-                    <span className="truncate">
+                    <span
+                      className="
+                        truncate
+                      "
+                    >
                       {label}
                     </span>
                   </>
                 )}
+
               </NavLink>
             )
           )}
@@ -231,15 +277,21 @@ function AppNavigation() {
         </div>
 
 
-        {/* IDENTITY NOTE */}
+        {/* ====================================
+            IDENTITY NOTE
+        ==================================== */}
 
         <div
           className="
             mt-6
+
             rounded-[18px]
+
             border
             border-[#e7e0e9]
+
             bg-[#fbf9fc]
+
             px-3.5
             py-3
 
@@ -252,6 +304,7 @@ function AppNavigation() {
             className="
               text-[10px]
               font-semibold
+
               text-[#74687d]
 
               dark:text-[#b0a4b8]
@@ -264,8 +317,10 @@ function AppNavigation() {
           <p
             className="
               mt-1
+
               text-[9px]
               leading-4
+
               text-[#a098a4]
 
               dark:text-[#817786]
@@ -289,6 +344,7 @@ function AppNavigation() {
           w-full
           items-center
           justify-around
+
           gap-1
 
           lg:hidden
@@ -312,14 +368,20 @@ function AppNavigation() {
                 flex
                 min-w-0
                 flex-1
+
                 flex-col
                 items-center
                 justify-center
+
                 gap-1
+
                 rounded-[15px]
+
                 px-1
                 py-1.5
+
                 text-[9px]
+
                 transition-colors
                 duration-150
 
@@ -328,9 +390,11 @@ function AppNavigation() {
                     ? `
                       bg-[#eee8ff]
                       font-semibold
+                      text-[#302839]
                     `
                     : `
                       font-semibold
+
                       text-[#8d8392]
 
                       hover:bg-[#f4eff5]
@@ -345,11 +409,13 @@ function AppNavigation() {
               style={({
                 isActive,
               }) => ({
-                color: isActive
-                  ? "#302839"
-                  : undefined,
+                color:
+                  isActive
+                    ? "#302839"
+                    : undefined,
               })}
             >
+
               {({
                 isActive,
               }) => (
@@ -361,7 +427,9 @@ function AppNavigation() {
                         ? 2.2
                         : 1.8
                     }
-                    className="shrink-0"
+                    className="
+                      shrink-0
+                    "
                     style={{
                       color:
                         isActive
@@ -370,17 +438,19 @@ function AppNavigation() {
                     }}
                   />
 
-                  <span className="truncate">
+                  <span
+                    className="
+                      truncate
+                    "
+                  >
                     {label ===
-                    "Notifications"
-                      ? "Alerts"
-                      : label ===
-                          "My space"
-                        ? "Me"
-                        : label}
+                    "My space"
+                      ? "Me"
+                      : label}
                   </span>
                 </>
               )}
+
             </NavLink>
           )
         )}
