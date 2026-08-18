@@ -1,12 +1,16 @@
 import {
   Bell,
+  Bookmark,
   ChevronDown,
+  Compass,
+  Home,
   LogOut,
   Menu,
   Moon,
   Search,
   Sun,
   UserRound,
+  X,
 } from "lucide-react";
 
 import {
@@ -16,6 +20,8 @@ import {
 } from "react";
 
 import {
+  NavLink,
+  useLocation,
   useNavigate,
 } from "react-router-dom";
 
@@ -24,12 +30,19 @@ import {
 } from "../context/AuthContext";
 
 
+// ==========================================
+// TOPBAR
+// ==========================================
+
 function Topbar({
   darkMode,
   setDarkMode,
 }) {
   const navigate =
     useNavigate();
+
+  const location =
+    useLocation();
 
   const {
     user,
@@ -46,10 +59,6 @@ function Topbar({
     setSearch,
   ] = useState("");
 
-
-  // ==========================================
-  // MOBILE SEARCH
-  // ==========================================
 
   const [
     mobileSearchOpen,
@@ -68,6 +77,16 @@ function Topbar({
 
 
   // ==========================================
+  // MOBILE DRAWER
+  // ==========================================
+
+  const [
+    mobileMenuOpen,
+    setMobileMenuOpen,
+  ] = useState(false);
+
+
+  // ==========================================
   // LOGOUT
   // ==========================================
 
@@ -78,11 +97,22 @@ function Topbar({
 
 
   // ==========================================
-  // PROFILE MENU REF
+  // REFS
   // ==========================================
 
   const profileMenuRef =
     useRef(null);
+
+
+  // ==========================================
+  // AVATAR
+  // ==========================================
+
+  const avatarLetter =
+    user?.username
+      ?.charAt(0)
+      ?.toUpperCase() ||
+    "U";
 
 
   // ==========================================
@@ -113,7 +143,7 @@ function Topbar({
 
 
   // ==========================================
-  // CLOSE MENU ON OUTSIDE CLICK
+  // CLOSE PROFILE ON OUTSIDE CLICK
   // ==========================================
 
   useEffect(() => {
@@ -148,20 +178,30 @@ function Topbar({
 
 
   // ==========================================
-  // CLOSE MENU WITH ESC
+  // ESCAPE HANDLER
   // ==========================================
 
   useEffect(() => {
     const handleEscape =
       (event) => {
         if (
-          event.key ===
+          event.key !==
           "Escape"
         ) {
-          setProfileMenuOpen(
-            false
-          );
+          return;
         }
+
+        setProfileMenuOpen(
+          false
+        );
+
+        setMobileMenuOpen(
+          false
+        );
+
+        setMobileSearchOpen(
+          false
+        );
       };
 
 
@@ -181,35 +221,90 @@ function Topbar({
 
 
   // ==========================================
-  // NAVIGATE PROFILE
+  // PREVENT BODY SCROLL WHEN DRAWER OPEN
   // ==========================================
 
-  const handleMySpace =
-    () => {
-      setProfileMenuOpen(
-        false
-      );
+  useEffect(() => {
+    if (!mobileMenuOpen) {
+      return;
+    }
 
-      navigate(
-        "/space"
-      );
+
+    const previousOverflow =
+      document.body.style
+        .overflow;
+
+
+    document.body.style.overflow =
+      "hidden";
+
+
+    return () => {
+      document.body.style.overflow =
+        previousOverflow;
     };
+  }, [
+    mobileMenuOpen,
+  ]);
 
 
   // ==========================================
-  // NAVIGATE NOTIFICATIONS
+  // CLOSE DRAWER WHEN ROUTE CHANGES
   // ==========================================
 
-  const handleNotifications =
-    () => {
-      setProfileMenuOpen(
-        false
-      );
+  useEffect(() => {
+    setMobileMenuOpen(
+      false
+    );
 
-      navigate(
-        "/notifications"
-      );
-    };
+    setMobileSearchOpen(
+      false
+    );
+
+    setProfileMenuOpen(
+      false
+    );
+  }, [
+    location.pathname,
+    location.search,
+  ]);
+
+
+  // ==========================================
+  // MOBILE NAV
+  // ==========================================
+
+  const mobileNavigation = [
+    {
+      label: "Home",
+      path: "/",
+      icon: Home,
+    },
+
+    {
+      label: "Discover",
+      path: "/discover",
+      icon: Compass,
+    },
+
+    {
+      label: "Saved",
+      path: "/saved",
+      icon: Bookmark,
+    },
+
+    {
+      label: "Notifications",
+      path: "/notifications",
+      icon: Bell,
+    },
+
+    {
+      label: "My space",
+      path: "/space",
+      icon: UserRound,
+    },
+  ];
 
 
   // ==========================================
@@ -222,6 +317,7 @@ function Topbar({
         return;
       }
 
+
       try {
         setLoggingOut(
           true
@@ -231,7 +327,12 @@ function Topbar({
           false
         );
 
+        setMobileMenuOpen(
+          false
+        );
+
         await logout();
+
 
         navigate(
           "/login",
@@ -253,211 +354,846 @@ function Topbar({
 
 
   // ==========================================
-  // AVATAR
+  // PROFILE ACTIONS
   // ==========================================
 
-  const avatarLetter =
-    user?.username
-      ?.charAt(0)
-      ?.toUpperCase() ||
-    "U";
+  const handleMySpace =
+    () => {
+      setProfileMenuOpen(
+        false
+      );
+
+      navigate(
+        "/space"
+      );
+    };
+
+
+  const handleNotifications =
+    () => {
+      setProfileMenuOpen(
+        false
+      );
+
+      navigate(
+        "/notifications"
+      );
+    };
+
+
+  // ==========================================
+  // NAVIGATION ITEM
+  // ==========================================
+
+  const MobileNavItem =
+    ({
+      item,
+    }) => {
+      const Icon =
+        item.icon;
+
+
+      return (
+        <NavLink
+          to={
+            item.path
+          }
+          end={
+            item.path ===
+            "/"
+          }
+          onClick={() =>
+            setMobileMenuOpen(
+              false
+            )
+          }
+          className={({
+            isActive,
+          }) =>
+            `
+              flex
+              min-h-[52px]
+              items-center
+              gap-3
+              rounded-[16px]
+              px-4
+              text-sm
+              font-medium
+              transition
+
+              ${
+                isActive
+                  ? `
+                    bg-[#eee8ff]
+                    text-[#302839]
+                  `
+                  : `
+                    text-[#c3b8c8]
+                    hover:bg-white/5
+                    hover:text-white
+                  `
+              }
+            `
+          }
+        >
+          <Icon
+            size={19}
+            strokeWidth={1.8}
+          />
+
+          <span>
+            {item.label}
+          </span>
+        </NavLink>
+      );
+    };
 
 
   return (
-    <header
-      className="
-        sticky
-        top-0
-        z-50
-        w-full
-
-        border-b
-        border-transparent
-
-        bg-transparent
-
-        backdrop-blur-[2px]
-
-        transition-all
-        duration-200
-      "
-    >
-
+    <>
       {/* ======================================
-          MAIN BAR
+          TOPBAR
       ====================================== */}
 
-      <div
+      <header
         className="
-          flex
-          min-h-[82px]
+          sticky
+          top-0
+          z-50
           w-full
-          items-center
 
-          px-4
+          border-b
+          border-transparent
 
-          sm:px-6
+          bg-transparent
 
-          lg:px-8
+          backdrop-blur-[2px]
 
-          xl:px-10
-
-          2xl:px-14
-
-          3xl:px-20
+          transition-all
+          duration-200
         "
       >
 
         <div
           className="
             flex
+            min-h-[74px]
             w-full
             items-center
-            gap-3
 
-            sm:gap-4
+            px-4
 
-            lg:gap-6
+            sm:min-h-[78px]
+            sm:px-6
+
+            lg:min-h-[82px]
+            lg:px-8
+
+            xl:px-10
+
+            2xl:px-14
+
+            3xl:px-20
           "
         >
 
-          {/* ==================================
-              BRAND
-          ================================== */}
-
-          <button
-            type="button"
-            onClick={() =>
-              navigate("/")
-            }
+          <div
             className="
               flex
-              shrink-0
+              w-full
               items-center
-              gap-3
-              text-left
+              gap-2
+
+              sm:gap-3
+
+              lg:gap-6
             "
-            aria-label="Go home"
           >
 
-            <div
+            {/* ==================================
+                BRAND
+            ================================== */}
+
+            <button
+              type="button"
+              onClick={() =>
+                navigate("/")
+              }
               className="
-                grid
-                h-10
-                w-10
+                flex
                 shrink-0
-                place-items-center
-                rounded-[14px]
-
-                bg-[#eee8ff]
-
-                text-sm
-                font-bold
-                text-[#302839]
-
-                shadow-sm
-
-                sm:h-11
-                sm:w-11
+                items-center
+                gap-3
+                text-left
               "
             >
-              U
-            </div>
 
+              <div
+                className="
+                  grid
+                  h-10
+                  w-10
+                  shrink-0
+                  place-items-center
+                  rounded-[14px]
+
+                  bg-[#eee8ff]
+
+                  text-sm
+                  font-bold
+                  text-[#302839]
+
+                  shadow-sm
+
+                  sm:h-11
+                  sm:w-11
+                "
+              >
+                U
+              </div>
+
+
+              <div
+                className="
+                  hidden
+                  sm:block
+                "
+              >
+
+                <p
+                  className="
+                    text-sm
+                    font-semibold
+                    tracking-[-0.02em]
+
+                    text-[#f4edf7]
+                  "
+                >
+                  Unsaid
+                </p>
+
+
+                <p
+                  className="
+                    mt-0.5
+                    text-[8px]
+                    font-medium
+                    tracking-[0.18em]
+
+                    text-[#817786]
+                  "
+                >
+                  SAY WHAT YOU MEAN
+                </p>
+
+              </div>
+
+            </button>
+
+
+            {/* ==================================
+                DESKTOP SEARCH
+            ================================== */}
 
             <div
               className="
                 hidden
-                sm:block
+                min-w-0
+                flex-1
+                justify-center
+
+                lg:flex
               "
             >
 
-              <p
+              <form
+                onSubmit={
+                  handleSearch
+                }
                 className="
-                  text-sm
-                  font-semibold
-                  tracking-[-0.02em]
+                  w-full
 
-                  text-[#f4edf7]
+                  max-w-[620px]
 
-                  drop-shadow-sm
+                  xl:max-w-[700px]
+
+                  2xl:max-w-[760px]
+
+                  3xl:max-w-[820px]
                 "
               >
-                Unsaid
-              </p>
+
+                <div
+                  className="
+                    relative
+                  "
+                >
+
+                  <Search
+                    size={18}
+                    strokeWidth={1.8}
+                    className="
+                      pointer-events-none
+                      absolute
+                      left-4
+                      top-1/2
+                      -translate-y-1/2
+
+                      text-[#84788d]
+                    "
+                  />
 
 
-              <p
-                className="
-                  mt-0.5
-                  text-[8px]
-                  font-medium
-                  tracking-[0.18em]
+                  <input
+                    type="text"
+                    value={
+                      search
+                    }
+                    onChange={(
+                      event
+                    ) =>
+                      setSearch(
+                        event.target.value
+                      )
+                    }
+                    placeholder="Search Unsaid..."
+                    autoComplete="off"
+                    spellCheck={false}
+                    className="
+                      h-11
+                      w-full
+                      rounded-full
 
-                  text-[#817786]
-                "
-              >
-                SAY WHAT YOU MEAN
-              </p>
+                      border
+                      border-white/5
+
+                      bg-transparent
+
+                      pl-11
+                      pr-5
+
+                      text-sm
+                      text-[#eee8f1]
+
+                      outline-none
+
+                      transition
+
+                      placeholder:text-[#817786]
+
+                      hover:border-white/10
+
+                      focus:border-white/15
+
+                      focus:ring-4
+                      focus:ring-white/5
+                    "
+                  />
+
+                </div>
+
+              </form>
 
             </div>
 
-          </button>
+
+            {/* ==================================
+                RIGHT ACTIONS
+            ================================== */}
+
+            <div
+              className="
+                ml-auto
+                flex
+                shrink-0
+                items-center
+                gap-1
+
+                sm:gap-2
+              "
+            >
+
+              {/* MOBILE SEARCH */}
+
+              <button
+                type="button"
+                onClick={() =>
+                  setMobileSearchOpen(
+                    (current) =>
+                      !current
+                  )
+                }
+                className="
+                  grid
+                  h-10
+                  w-10
+                  place-items-center
+                  rounded-full
+
+                  text-[#afa3b5]
+
+                  transition
+
+                  hover:bg-white/5
+                  hover:text-white
+
+                  lg:hidden
+                "
+                aria-label="Search"
+              >
+                <Search
+                  size={19}
+                  strokeWidth={1.8}
+                />
+              </button>
 
 
-          {/* ==================================
-              MOBILE SEARCH BUTTON
-          ================================== */}
+              {/* DESKTOP NOTIFICATION */}
 
-          <button
-            type="button"
-            onClick={() =>
-              setMobileSearchOpen(
-                (current) =>
-                  !current
-              )
-            }
-            className="
-              ml-auto
-              grid
-              h-10
-              w-10
-              shrink-0
-              place-items-center
-              rounded-full
+              <button
+                type="button"
+                onClick={
+                  handleNotifications
+                }
+                className="
+                  grid
+                  h-10
+                  w-10
+                  shrink-0
+                  place-items-center
+                  rounded-full
 
-              text-[#afa3b5]
+                  text-[#afa3b5]
 
-              transition
+                  transition
 
-              hover:bg-white/5
-              hover:text-white
-
-              lg:hidden
-            "
-            aria-label="Search"
-          >
-
-            <Search
-              size={19}
-              strokeWidth={1.8}
-            />
-
-          </button>
+                  hover:bg-white/5
+                  hover:text-white
+                "
+                aria-label="Notifications"
+              >
+                <Bell
+                  size={19}
+                  strokeWidth={1.8}
+                />
+              </button>
 
 
-          {/* ==================================
-              DESKTOP SEARCH
-          ================================== */}
+              {/* THEME */}
 
+              <button
+                type="button"
+                onClick={() =>
+                  setDarkMode(
+                    (current) =>
+                      !current
+                  )
+                }
+                className="
+                  hidden
+                  h-10
+                  w-10
+                  shrink-0
+                  place-items-center
+                  rounded-full
+
+                  text-[#afa3b5]
+
+                  transition
+
+                  hover:bg-white/5
+                  hover:text-white
+
+                  sm:grid
+                "
+                aria-label={
+                  darkMode
+                    ? "Switch to light mode"
+                    : "Switch to dark mode"
+                }
+              >
+                {darkMode ? (
+                  <Sun
+                    size={19}
+                    strokeWidth={1.8}
+                  />
+                ) : (
+                  <Moon
+                    size={19}
+                    strokeWidth={1.8}
+                  />
+                )}
+              </button>
+
+
+              {/* PROFILE DESKTOP */}
+
+              <div
+                ref={
+                  profileMenuRef
+                }
+                className="
+                  relative
+                  hidden
+
+                  lg:block
+                "
+              >
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setProfileMenuOpen(
+                      (current) =>
+                        !current
+                    )
+                  }
+                  className="
+                    flex
+                    items-center
+                    gap-2
+
+                    rounded-full
+
+                    border
+                    border-white/5
+
+                    bg-transparent
+
+                    p-1.5
+                    pr-3
+
+                    transition
+
+                    hover:border-white/10
+                    hover:bg-white/5
+                  "
+                  aria-expanded={
+                    profileMenuOpen
+                  }
+                >
+
+                  <div
+                    className="
+                      grid
+                      h-8
+                      w-8
+                      place-items-center
+                      rounded-full
+
+                      bg-[#eee8ff]
+
+                      text-xs
+                      font-semibold
+                      text-[#302839]
+                    "
+                  >
+                    {
+                      avatarLetter
+                    }
+                  </div>
+
+
+                  <span
+                    className="
+                      max-w-[130px]
+                      truncate
+
+                      text-xs
+                      font-semibold
+
+                      text-[#eee8f1]
+                    "
+                  >
+                    @
+                    {
+                      user?.username ||
+                      "user"
+                    }
+                  </span>
+
+
+                  <ChevronDown
+                    size={14}
+                    className={
+                      profileMenuOpen
+                        ? "rotate-180 transition-transform"
+                        : "transition-transform"
+                    }
+                  />
+
+                </button>
+
+
+                {/* PROFILE MENU */}
+
+                {profileMenuOpen && (
+                  <div
+                    className="
+                      absolute
+                      right-0
+                      top-[calc(100%+10px)]
+                      z-[100]
+
+                      w-[220px]
+
+                      overflow-hidden
+
+                      rounded-[20px]
+
+                      border
+                      border-[#3a3340]
+
+                      bg-[#1b1820]
+
+                      p-1.5
+
+                      shadow-[0_20px_50px_rgba(0,0,0,0.35)]
+
+                      backdrop-blur-xl
+                    "
+                  >
+
+                    <div
+                      className="
+                        px-3
+                        py-3
+                      "
+                    >
+                      <p
+                        className="
+                          truncate
+                          text-xs
+                          font-semibold
+                          text-[#f2ebf5]
+                        "
+                      >
+                        @
+                        {
+                          user?.username ||
+                          "user"
+                        }
+                      </p>
+
+                      <p
+                        className="
+                          mt-1
+                          text-[10px]
+                          text-[#817786]
+                        "
+                      >
+                        Your Unsaid space
+                      </p>
+                    </div>
+
+
+                    <div
+                      className="
+                        border-t
+                        border-[#302934]
+                      "
+                    />
+
+
+                    <button
+                      type="button"
+                      onClick={
+                        handleMySpace
+                      }
+                      className="
+                        flex
+                        w-full
+                        items-center
+                        gap-3
+
+                        rounded-[14px]
+
+                        px-3
+                        py-2.5
+
+                        text-left
+                        text-xs
+                        font-medium
+
+                        text-[#d8cedc]
+
+                        hover:bg-white/5
+                      "
+                    >
+                      <UserRound
+                        size={16}
+                      />
+
+                      My space
+                    </button>
+
+
+                    <button
+                      type="button"
+                      onClick={
+                        handleNotifications
+                      }
+                      className="
+                        flex
+                        w-full
+                        items-center
+                        gap-3
+
+                        rounded-[14px]
+
+                        px-3
+                        py-2.5
+
+                        text-left
+                        text-xs
+                        font-medium
+
+                        text-[#d8cedc]
+
+                        hover:bg-white/5
+                      "
+                    >
+                      <Bell
+                        size={16}
+                      />
+
+                      Notifications
+                    </button>
+
+
+                    <div
+                      className="
+                        my-1
+                        border-t
+                        border-[#302934]
+                      "
+                    />
+
+
+                    <button
+                      type="button"
+                      onClick={
+                        handleLogout
+                      }
+                      disabled={
+                        loggingOut
+                      }
+                      className="
+                        flex
+                        w-full
+                        items-center
+                        gap-3
+
+                        rounded-[14px]
+
+                        px-3
+                        py-2.5
+
+                        text-left
+                        text-xs
+                        font-medium
+
+                        text-red-400
+
+                        hover:bg-red-500/10
+
+                        disabled:opacity-50
+                      "
+                    >
+
+                      <LogOut
+                        size={16}
+                      />
+
+                      {
+                        loggingOut
+                          ? "Logging out..."
+                          : "Log out"
+                      }
+
+                    </button>
+
+                  </div>
+                )}
+
+              </div>
+
+
+              {/* MOBILE MENU BUTTON */}
+
+              <button
+                type="button"
+                onClick={() =>
+                  setMobileMenuOpen(
+                    (current) =>
+                      !current
+                  )
+                }
+                className="
+                  grid
+                  h-10
+                  w-10
+                  shrink-0
+                  place-items-center
+                  rounded-full
+
+                  text-[#afa3b5]
+
+                  transition
+
+                  hover:bg-white/5
+                  hover:text-white
+
+                  lg:hidden
+                "
+                aria-label={
+                  mobileMenuOpen
+                    ? "Close menu"
+                    : "Open menu"
+                }
+                aria-expanded={
+                  mobileMenuOpen
+                }
+              >
+
+                {mobileMenuOpen ? (
+                  <X
+                    size={21}
+                    strokeWidth={1.8}
+                  />
+                ) : (
+                  <Menu
+                    size={21}
+                    strokeWidth={1.8}
+                  />
+                )}
+
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        {/* ======================================
+            MOBILE SEARCH PANEL
+        ====================================== */}
+
+        {mobileSearchOpen && (
           <div
             className="
-              hidden
-              min-w-0
-              flex-1
-              justify-center
+              border-t
+              border-transparent
 
-              lg:flex
+              bg-transparent
+
+              px-4
+              pb-4
+              pt-2
+
+              lg:hidden
             "
           >
 
@@ -465,42 +1201,29 @@ function Topbar({
               onSubmit={
                 handleSearch
               }
-              className="
-                w-full
-
-                max-w-[620px]
-
-                xl:max-w-[700px]
-
-                2xl:max-w-[760px]
-
-                3xl:max-w-[820px]
-              "
             >
 
               <div
                 className="
                   relative
-                  w-full
                 "
               >
 
                 <Search
                   size={18}
-                  strokeWidth={1.8}
                   className="
                     pointer-events-none
                     absolute
                     left-4
                     top-1/2
                     -translate-y-1/2
-
                     text-[#84788d]
                   "
                 />
 
 
                 <input
+                  autoFocus
                   type="text"
                   value={
                     search
@@ -514,7 +1237,6 @@ function Topbar({
                   }
                   placeholder="Search Unsaid..."
                   autoComplete="off"
-                  spellCheck={false}
                   className="
                     h-11
                     w-full
@@ -533,14 +1255,9 @@ function Topbar({
 
                     outline-none
 
-                    transition
-
                     placeholder:text-[#817786]
 
-                    hover:border-white/10
-
                     focus:border-white/15
-
                     focus:ring-4
                     focus:ring-white/5
                   "
@@ -551,626 +1268,468 @@ function Topbar({
             </form>
 
           </div>
+        )}
 
-
-          {/* ==================================
-              RIGHT ACTIONS
-          ================================== */}
-
-          <div
-            className="
-              flex
-              shrink-0
-              items-center
-              gap-1
-
-              sm:gap-2
-            "
-          >
-
-            {/* ==================================
-                NOTIFICATION ICON
-            ================================== */}
-
-            <button
-              type="button"
-              onClick={
-                handleNotifications
-              }
-              className="
-                relative
-                grid
-                h-10
-                w-10
-                shrink-0
-                place-items-center
-                rounded-full
-
-                text-[#afa3b5]
-
-                transition
-
-                hover:bg-white/5
-                hover:text-white
-              "
-              aria-label="Notifications"
-              title="Notifications"
-            >
-
-              <Bell
-                size={19}
-                strokeWidth={1.8}
-              />
-
-            </button>
-
-
-            {/* ==================================
-                THEME
-            ================================== */}
-
-            <button
-              type="button"
-              onClick={() =>
-                setDarkMode(
-                  (current) =>
-                    !current
-                )
-              }
-              className="
-                hidden
-                h-10
-                w-10
-                shrink-0
-                place-items-center
-                rounded-full
-
-                text-[#afa3b5]
-
-                transition
-
-                hover:bg-white/5
-                hover:text-white
-
-                sm:grid
-              "
-              aria-label={
-                darkMode
-                  ? "Switch to light mode"
-                  : "Switch to dark mode"
-              }
-            >
-
-              {darkMode ? (
-                <Sun
-                  size={19}
-                  strokeWidth={1.8}
-                />
-              ) : (
-                <Moon
-                  size={19}
-                  strokeWidth={1.8}
-                />
-              )}
-
-            </button>
-
-
-            {/* ==================================
-                PROFILE + DROPDOWN
-            ================================== */}
-
-            <div
-              ref={
-                profileMenuRef
-              }
-              className="
-                relative
-                ml-1
-              "
-            >
-
-              <button
-                type="button"
-                onClick={() =>
-                  setProfileMenuOpen(
-                    (current) =>
-                      !current
-                  )
-                }
-                className="
-                  flex
-                  shrink-0
-                  items-center
-                  gap-2
-
-                  rounded-full
-
-                  border
-                  border-white/5
-
-                  bg-transparent
-
-                  p-1.5
-                  pr-2.5
-
-                  transition
-
-                  hover:border-white/10
-                  hover:bg-white/5
-
-                  sm:pr-3
-                "
-                aria-expanded={
-                  profileMenuOpen
-                }
-                aria-haspopup="menu"
-                aria-label="Open account menu"
-              >
-
-                {/* AVATAR */}
-
-                <div
-                  className="
-                    grid
-                    h-8
-                    w-8
-                    shrink-0
-                    place-items-center
-                    rounded-full
-
-                    bg-[#eee8ff]
-
-                    text-xs
-                    font-semibold
-                    text-[#302839]
-                  "
-                >
-                  {avatarLetter}
-                </div>
-
-
-                {/* USERNAME */}
-
-                <span
-                  className="
-                    hidden
-                    max-w-[110px]
-                    truncate
-
-                    text-xs
-                    font-semibold
-
-                    text-[#eee8f1]
-
-                    drop-shadow-sm
-
-                    md:block
-
-                    lg:max-w-[130px]
-                  "
-                >
-                  @{user?.username ||
-                    "user"}
-                </span>
-
-
-                <ChevronDown
-                  size={14}
-                  strokeWidth={2}
-                  className={`
-                    hidden
-                    text-[#8f8497]
-
-                    transition-transform
-                    duration-200
-
-                    md:block
-
-                    ${
-                      profileMenuOpen
-                        ? "rotate-180"
-                        : "rotate-0"
-                    }
-                  `}
-                />
-
-              </button>
-
-
-              {/* ==================================
-                  DROPDOWN
-              ================================== */}
-
-              {profileMenuOpen && (
-                <div
-                  role="menu"
-                  className="
-                    absolute
-                    right-0
-                    top-[calc(100%+10px)]
-                    z-[100]
-
-                    w-[220px]
-
-                    overflow-hidden
-
-                    rounded-[20px]
-
-                    border
-                    border-[#3a3340]
-
-                    bg-[#1b1820]
-
-                    p-1.5
-
-                    shadow-[0_20px_50px_rgba(0,0,0,0.35)]
-
-                    backdrop-blur-xl
-                  "
-                >
-
-                  {/* USER HEADER */}
-
-                  <div
-                    className="
-                      px-3
-                      py-3
-                    "
-                  >
-
-                    <p
-                      className="
-                        truncate
-
-                        text-xs
-                        font-semibold
-
-                        text-[#f2ebf5]
-                      "
-                    >
-                      @{user?.username ||
-                        "user"}
-                    </p>
-
-
-                    <p
-                      className="
-                        mt-1
-
-                        text-[10px]
-
-                        text-[#817786]
-                      "
-                    >
-                      Your Unsaid space
-                    </p>
-
-                  </div>
-
-
-                  <div
-                    className="
-                      my-1
-                      border-t
-                      border-[#302934]
-                    "
-                  />
-
-
-                  {/* MY SPACE */}
-
-                  <button
-                    type="button"
-                    role="menuitem"
-                    onClick={
-                      handleMySpace
-                    }
-                    className="
-                      flex
-                      w-full
-                      items-center
-                      gap-3
-
-                      rounded-[14px]
-
-                      px-3
-                      py-2.5
-
-                      text-left
-
-                      text-xs
-                      font-medium
-
-                      text-[#d8cedc]
-
-                      transition
-
-                      hover:bg-white/5
-                      hover:text-white
-                    "
-                  >
-
-                    <UserRound
-                      size={16}
-                      strokeWidth={1.8}
-                    />
-
-                    <span>
-                      My space
-                    </span>
-
-                  </button>
-
-
-                  {/* NOTIFICATIONS */}
-
-                  <button
-                    type="button"
-                    role="menuitem"
-                    onClick={
-                      handleNotifications
-                    }
-                    className="
-                      flex
-                      w-full
-                      items-center
-                      gap-3
-
-                      rounded-[14px]
-
-                      px-3
-                      py-2.5
-
-                      text-left
-
-                      text-xs
-                      font-medium
-
-                      text-[#d8cedc]
-
-                      transition
-
-                      hover:bg-white/5
-                      hover:text-white
-                    "
-                  >
-
-                    <Bell
-                      size={16}
-                      strokeWidth={1.8}
-                    />
-
-                    <span>
-                      Notifications
-                    </span>
-
-                  </button>
-
-
-                  <div
-                    className="
-                      my-1
-                      border-t
-                      border-[#302934]
-                    "
-                  />
-
-
-                  {/* LOGOUT */}
-
-                  <button
-                    type="button"
-                    role="menuitem"
-                    onClick={
-                      handleLogout
-                    }
-                    disabled={
-                      loggingOut
-                    }
-                    className="
-                      flex
-                      w-full
-                      items-center
-                      gap-3
-
-                      rounded-[14px]
-
-                      px-3
-                      py-2.5
-
-                      text-left
-
-                      text-xs
-                      font-medium
-
-                      text-red-400
-
-                      transition
-
-                      hover:bg-red-500/10
-                      hover:text-red-300
-
-                      disabled:cursor-not-allowed
-                      disabled:opacity-50
-                    "
-                  >
-
-                    {loggingOut ? (
-                      <span
-                        className="
-                          h-4
-                          w-4
-                          animate-spin
-                          rounded-full
-                          border-2
-                          border-red-400/30
-                          border-t-red-400
-                        "
-                      />
-                    ) : (
-                      <LogOut
-                        size={16}
-                        strokeWidth={1.8}
-                      />
-                    )}
-
-                    <span>
-                      {loggingOut
-                        ? "Logging out..."
-                        : "Log out"}
-                    </span>
-
-                  </button>
-
-                </div>
-              )}
-
-            </div>
-
-
-            {/* ==================================
-                MOBILE MENU
-            ================================== */}
-
-            <button
-              type="button"
-              className="
-                grid
-                h-10
-                w-10
-                shrink-0
-                place-items-center
-                rounded-full
-
-                text-[#afa3b5]
-
-                transition
-
-                hover:bg-white/5
-                hover:text-white
-
-                lg:hidden
-              "
-              aria-label="Open menu"
-            >
-
-              <Menu
-                size={20}
-                strokeWidth={1.8}
-              />
-
-            </button>
-
-          </div>
-
-        </div>
-
-      </div>
+      </header>
 
 
       {/* ======================================
-          MOBILE SEARCH
+          MOBILE BACKDROP
       ====================================== */}
 
-      {mobileSearchOpen && (
+      <div
+        className={`
+          fixed
+          inset-0
+          z-[80]
+
+          bg-black/50
+
+          transition-opacity
+          duration-300
+
+          lg:hidden
+
+          ${
+            mobileMenuOpen
+              ? "pointer-events-auto opacity-100"
+              : "pointer-events-none opacity-0"
+          }
+        `}
+        onClick={() =>
+          setMobileMenuOpen(
+            false
+          )
+        }
+        aria-hidden="true"
+      />
+
+
+      {/* ======================================
+          MOBILE DRAWER
+      ====================================== */}
+
+      <aside
+        className={`
+          fixed
+          bottom-0
+          left-0
+          top-0
+
+          z-[90]
+
+          flex
+          w-[min(86vw,340px)]
+          flex-col
+
+          border-r
+          border-[#302934]
+
+          bg-[#121016]
+
+          shadow-[20px_0_60px_rgba(0,0,0,0.35)]
+
+          transition-transform
+          duration-300
+          ease-out
+
+          lg:hidden
+
+          ${
+            mobileMenuOpen
+              ? "translate-x-0"
+              : "-translate-x-full"
+          }
+        `}
+        aria-hidden={
+          !mobileMenuOpen
+        }
+      >
+
+        {/* ==================================
+            DRAWER HEADER
+        ================================== */}
+
         <div
           className="
-            border-t
-            border-transparent
+            flex
+            min-h-[78px]
+            items-center
+            justify-between
 
-            bg-transparent
+            border-b
+            border-[#29242d]
 
-            px-4
-            pb-4
-            pt-3
-
-            backdrop-blur-[2px]
-
-            sm:px-6
-
-            lg:hidden
+            px-5
           "
         >
 
-          <form
-            onSubmit={
-              handleSearch
-            }
+          <button
+            type="button"
+            onClick={() => {
+              setMobileMenuOpen(
+                false
+              );
+
+              navigate("/");
+            }}
+            className="
+              flex
+              items-center
+              gap-3
+            "
           >
 
             <div
               className="
-                relative
+                grid
+                h-10
+                w-10
+                place-items-center
+                rounded-[13px]
+
+                bg-[#eee8ff]
+
+                text-sm
+                font-bold
+                text-[#302839]
+              "
+            >
+              U
+            </div>
+
+
+            <div
+              className="
+                text-left
               "
             >
 
-              <Search
-                size={18}
-                strokeWidth={1.8}
+              <p
                 className="
-                  pointer-events-none
-                  absolute
-                  left-4
-                  top-1/2
-                  -translate-y-1/2
-
-                  text-[#84788d]
-                "
-              />
-
-
-              <input
-                autoFocus
-                type="text"
-                value={
-                  search
-                }
-                onChange={(
-                  event
-                ) =>
-                  setSearch(
-                    event.target.value
-                  )
-                }
-                placeholder="Search Unsaid..."
-                autoComplete="off"
-                spellCheck={false}
-                className="
-                  h-11
-                  w-full
-                  rounded-full
-
-                  border
-                  border-white/5
-
-                  bg-transparent
-
-                  pl-11
-                  pr-5
-
                   text-sm
-                  text-[#eee8f1]
-
-                  outline-none
-
-                  placeholder:text-[#817786]
-
-                  focus:border-white/15
-
-                  focus:ring-4
-                  focus:ring-white/5
+                  font-semibold
+                  text-[#f4edf7]
                 "
-              />
+              >
+                Unsaid
+              </p>
+
+              <p
+                className="
+                  mt-0.5
+                  text-[8px]
+                  tracking-[0.16em]
+                  text-[#817786]
+                "
+              >
+                SAY WHAT YOU MEAN
+              </p>
 
             </div>
 
-          </form>
+          </button>
+
+
+          <button
+            type="button"
+            onClick={() =>
+              setMobileMenuOpen(
+                false
+              )
+            }
+            className="
+              grid
+              h-9
+              w-9
+              place-items-center
+              rounded-full
+
+              text-[#93889b]
+
+              hover:bg-white/5
+              hover:text-white
+            "
+            aria-label="Close menu"
+          >
+            <X size={19} />
+          </button>
 
         </div>
-      )}
 
-    </header>
+
+        {/* ==================================
+            USER CARD
+        ================================== */}
+
+        <div
+          className="
+            mx-4
+            mt-5
+
+            rounded-[20px]
+
+            border
+            border-[#302a35]
+
+            bg-[#1a171e]
+
+            p-4
+          "
+        >
+
+          <button
+            type="button"
+            onClick={
+              handleMySpace
+            }
+            className="
+              flex
+              w-full
+              items-center
+              gap-3
+              text-left
+            "
+          >
+
+            <div
+              className="
+                grid
+                h-10
+                w-10
+                shrink-0
+                place-items-center
+                rounded-full
+
+                bg-[#eee8ff]
+
+                text-xs
+                font-semibold
+                text-[#302839]
+              "
+            >
+              {avatarLetter}
+            </div>
+
+
+            <div
+              className="
+                min-w-0
+              "
+            >
+
+              <p
+                className="
+                  truncate
+                  text-xs
+                  font-semibold
+                  text-[#eee8f1]
+                "
+              >
+                @
+                {
+                  user?.username ||
+                  "user"
+                }
+              </p>
+
+
+              <p
+                className="
+                  mt-1
+                  text-[10px]
+                  text-[#817786]
+                "
+              >
+                Your space
+              </p>
+
+            </div>
+
+          </button>
+
+        </div>
+
+
+        {/* ==================================
+            NAVIGATION
+        ================================== */}
+
+        <nav
+          className="
+            mt-5
+            flex-1
+
+            overflow-y-auto
+
+            px-4
+          "
+        >
+
+          <p
+            className="
+              px-3
+              pb-2
+
+              text-[9px]
+              font-semibold
+              uppercase
+              tracking-[0.16em]
+
+              text-[#6f6576]
+            "
+          >
+            Navigation
+          </p>
+
+
+          <div
+            className="
+              space-y-1
+            "
+          >
+
+            {mobileNavigation.map(
+              (item) => (
+                <MobileNavItem
+                  key={
+                    item.path
+                  }
+                  item={
+                    item
+                  }
+                />
+              )
+            )}
+
+          </div>
+
+
+          <div
+            className="
+              my-5
+
+              border-t
+              border-[#29242d]
+            "
+          />
+
+
+          {/* THEME */}
+
+          <button
+            type="button"
+            onClick={() =>
+              setDarkMode(
+                (current) =>
+                  !current
+              )
+            }
+            className="
+              flex
+              min-h-[52px]
+              w-full
+              items-center
+              gap-3
+              rounded-[16px]
+              px-4
+
+              text-sm
+              font-medium
+
+              text-[#c3b8c8]
+
+              transition
+
+              hover:bg-white/5
+              hover:text-white
+            "
+          >
+
+            {darkMode ? (
+              <Sun
+                size={19}
+              />
+            ) : (
+              <Moon
+                size={19}
+              />
+            )}
+
+            <span>
+              {darkMode
+                ? "Light mode"
+                : "Dark mode"}
+            </span>
+
+          </button>
+
+        </nav>
+
+
+        {/* ==================================
+            DRAWER FOOTER
+        ================================== */}
+
+        <div
+          className="
+            border-t
+            border-[#29242d]
+
+            p-4
+          "
+        >
+
+          <button
+            type="button"
+            onClick={
+              handleLogout
+            }
+            disabled={
+              loggingOut
+            }
+            className="
+              flex
+              min-h-[50px]
+              w-full
+              items-center
+              gap-3
+
+              rounded-[16px]
+
+              px-4
+
+              text-sm
+              font-medium
+
+              text-red-400
+
+              transition
+
+              hover:bg-red-500/10
+
+              disabled:opacity-50
+            "
+          >
+
+            <LogOut
+              size={19}
+            />
+
+            <span>
+              {
+                loggingOut
+                  ? "Logging out..."
+                  : "Log out"
+              }
+            </span>
+
+          </button>
+
+        </div>
+
+      </aside>
+    </>
   );
 }
 
