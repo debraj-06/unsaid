@@ -11,7 +11,23 @@ const {
 
 
 // ==========================================
-// FIND ANONYMOUS EXPERIENCES
+// ESCAPE REGEX
+// ==========================================
+
+const escapeRegex = (
+  value
+) => {
+  return String(
+    value || ""
+  ).replace(
+    /[.*+?^${}()|[\]\\]/g,
+    "\\$&"
+  );
+};
+
+
+// ==========================================
+// GET EXPERIENCE MATCHES
 // ==========================================
 
 const getExperienceMatches =
@@ -26,7 +42,7 @@ const getExperienceMatches =
 
 
       // ======================================
-      // VALIDATE THOUGHT
+      // VALIDATE ID
       // ======================================
 
       if (!thoughtId) {
@@ -38,7 +54,7 @@ const getExperienceMatches =
 
 
       // ======================================
-      // CURRENT THOUGHT
+      // GET CURRENT THOUGHT
       // ======================================
 
       const currentThought =
@@ -61,7 +77,7 @@ const getExperienceMatches =
 
       if (
         typeof currentThought.content !==
-        "string" ||
+          "string" ||
         !currentThought.content.trim()
       ) {
         return res.json({
@@ -72,7 +88,7 @@ const getExperienceMatches =
 
 
       // ======================================
-      // BUILD DYNAMIC SEARCH TERMS
+      // FIND KEYWORDS DYNAMICALLY
       // ======================================
 
       const keywords =
@@ -84,18 +100,6 @@ const getExperienceMatches =
 
       // ======================================
       // BASE QUERY
-      // ======================================
-      //
-      // IMPORTANT:
-      // We exclude:
-      //
-      // 1. Current thought
-      // 2. Current author
-      //
-      // Therefore users cannot get their own
-      // thought back as a "resonance".
-      //
-      // We intentionally DON'T populate author.
       // ======================================
 
       const baseQuery = {
@@ -111,20 +115,15 @@ const getExperienceMatches =
 
         content: {
           $exists: true,
-          $type: "string",
+
+          $type:
+            "string",
         },
       };
 
 
       // ======================================
-      // DYNAMIC CANDIDATE QUERY
-      // ======================================
-      //
-      // If meaningful words exist, search for
-      // thoughts containing those actual words.
-      //
-      // If there aren't enough words, fall back
-      // to recent thoughts.
+      // GET CANDIDATES
       // ======================================
 
       let candidates;
@@ -142,9 +141,8 @@ const getExperienceMatches =
                 (keyword) => ({
                   content: {
                     $regex:
-                      keyword.replace(
-                        /[.*+?^${}()|[\]\\]/g,
-                        "\\$&"
+                      escapeRegex(
+                        keyword
                       ),
 
                     $options:
@@ -178,7 +176,7 @@ const getExperienceMatches =
 
 
       // ======================================
-      // SCORE CANDIDATES
+      // SCORE
       // ======================================
 
       const scored =
@@ -231,7 +229,7 @@ const getExperienceMatches =
 
 
       // ======================================
-      // REMOVE VERY SIMILAR DUPLICATES
+      // REMOVE DUPLICATES
       // ======================================
 
       const selected = [];
@@ -244,11 +242,11 @@ const getExperienceMatches =
           selected.some(
             (existing) =>
               existing.content
-                .toLowerCase()
-                .trim() ===
-              candidate.content
-                .toLowerCase()
                 .trim()
+                .toLowerCase() ===
+              candidate.content
+                .trim()
+                .toLowerCase()
           );
 
 
@@ -274,27 +272,34 @@ const getExperienceMatches =
 
 
       // ======================================
-      // RETURN ANONYMOUS RESULTS
+      // ANONYMOUS RESPONSE
       // ======================================
       //
-      // NEVER expose:
+      // We return the thought ID because the
+      // frontend needs it to open the thought.
       //
-      // username
-      // author
-      // user id
-      // profile
-      // follower data
-      // exact similarity score
+      // We DO NOT return:
+      // - username
+      // - author
+      // - authorId
+      // - profile
+      // - followers
+      // - likes from the author
       //
-      // This is intentional.
+      // The ID is only used by the existing
+      // authenticated get-thought endpoint.
       // ======================================
 
       const experiences =
         selected.map(
           (candidate) => ({
+            id:
+              candidate.id,
+
             content:
               shortenExperience(
-                candidate.content
+                candidate.content,
+                240
               ),
 
             createdAt:

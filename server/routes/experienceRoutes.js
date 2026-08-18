@@ -18,7 +18,7 @@ const router =
 
 
 // ==========================================
-// GET ANONYMOUS EXPERIENCE MATCHES
+// FIND ANONYMOUS EXPERIENCE MATCHES
 // ==========================================
 
 router.get(

@@ -27,6 +27,7 @@ import {
 
 import {
   deleteThought,
+  getThoughtById,
   toggleThoughtBookmark,
   toggleThoughtLike,
   updateThought,
@@ -51,12 +52,10 @@ function formatTime(
     return "";
   }
 
-
   const created =
     new Date(
       date
     ).getTime();
-
 
   if (
     Number.isNaN(
@@ -66,18 +65,14 @@ function formatTime(
     return "";
   }
 
-
   const difference =
     Date.now() -
     created;
 
-
   const minutes =
     Math.floor(
-      difference /
-        60000
+      difference / 60000
     );
-
 
   if (
     minutes < 1
@@ -85,19 +80,16 @@ function formatTime(
     return "just now";
   }
 
-
   if (
     minutes < 60
   ) {
     return `${minutes}m`;
   }
 
-
   const hours =
     Math.floor(
       minutes / 60
     );
-
 
   if (
     hours < 24
@@ -105,19 +97,16 @@ function formatTime(
     return `${hours}h`;
   }
 
-
   const days =
     Math.floor(
       hours / 24
     );
-
 
   if (
     days < 7
   ) {
     return `${days}d`;
   }
-
 
   return new Date(
     date
@@ -154,7 +143,7 @@ function ThoughtCard({
 
 
   // ==========================================
-  // STATE
+  // EXISTING STATE
   // ==========================================
 
   const [
@@ -166,17 +155,14 @@ function ThoughtCard({
     )
   );
 
-
   const [
     likesCount,
     setLikesCount,
   ] = useState(
     Number(
-      thought.likesCount ||
-        0
+      thought.likesCount || 0
     )
   );
-
 
   const [
     bookmarked,
@@ -187,62 +173,51 @@ function ThoughtCard({
     )
   );
 
-
   const [
     commentCount,
     setCommentCount,
   ] = useState(
     Number(
-      thought.commentCount ||
-        0
+      thought.commentCount || 0
     )
   );
-
 
   const [
     menuOpen,
     setMenuOpen,
   ] = useState(false);
 
-
   const [
     editing,
     setEditing,
   ] = useState(false);
 
-
   const [
     editContent,
     setEditContent,
   ] = useState(
-    thought.content ||
-      ""
+    thought.content || ""
   );
-
 
   const [
     savingEdit,
     setSavingEdit,
   ] = useState(false);
 
-
   const [
     likeLoading,
     setLikeLoading,
   ] = useState(false);
-
 
   const [
     bookmarkLoading,
     setBookmarkLoading,
   ] = useState(false);
 
-
   const [
     deleteLoading,
     setDeleteLoading,
   ] = useState(false);
-
 
   const [
     conversationOpen,
@@ -259,29 +234,45 @@ function ThoughtCard({
     setResonanceOpen,
   ] = useState(false);
 
-
   const [
     resonanceLoading,
     setResonanceLoading,
   ] = useState(false);
-
 
   const [
     resonanceLoaded,
     setResonanceLoaded,
   ] = useState(false);
 
-
   const [
     resonanceExperiences,
     setResonanceExperiences,
   ] = useState([]);
 
-
   const [
     resonanceError,
     setResonanceError,
   ] = useState("");
+
+  const [
+    selectedResonanceThought,
+    setSelectedResonanceThought,
+  ] = useState(null);
+
+  const [
+    resonanceThoughtLoading,
+    setResonanceThoughtLoading,
+  ] = useState(false);
+
+  const [
+    resonanceThoughtError,
+    setResonanceThoughtError,
+  ] = useState("");
+
+  const [
+    resonanceBack,
+    setResonanceBack,
+  ] = useState(false);
 
 
   // ==========================================
@@ -292,10 +283,8 @@ function ThoughtCard({
     Boolean(
       user?.username &&
         thought?.username &&
-        user.username
-          .toLowerCase() ===
-          thought.username
-            .toLowerCase()
+        user.username.toLowerCase() ===
+          thought.username.toLowerCase()
     );
 
 
@@ -310,14 +299,11 @@ function ThoughtCard({
       )
     );
 
-
     setLikesCount(
       Number(
-        thought.likesCount ||
-          0
+        thought.likesCount || 0
       )
     );
-
 
     setBookmarked(
       Boolean(
@@ -325,37 +311,14 @@ function ThoughtCard({
       )
     );
 
-
     setCommentCount(
       Number(
-        thought.commentCount ||
-          0
+        thought.commentCount || 0
       )
     );
 
-
     setEditContent(
-      thought.content ||
-        ""
-    );
-
-
-    // Reset resonance when
-    // the thought itself changes.
-    setResonanceOpen(
-      false
-    );
-
-    setResonanceLoaded(
-      false
-    );
-
-    setResonanceExperiences(
-      []
-    );
-
-    setResonanceError(
-      ""
+      thought.content || ""
     );
   }, [
     thought.id,
@@ -379,23 +342,18 @@ function ThoughtCard({
         return;
       }
 
-
       const previousLiked =
         liked;
-
 
       const previousCount =
         likesCount;
 
-
       const nextLiked =
         !liked;
-
 
       setLiked(
         nextLiked
       );
-
 
       setLikesCount(
         nextLiked
@@ -406,18 +364,15 @@ function ThoughtCard({
             )
       );
 
-
       try {
         setLikeLoading(
           true
         );
 
-
         const data =
           await toggleThoughtLike(
             thought.id
           );
-
 
         setLiked(
           Boolean(
@@ -425,11 +380,9 @@ function ThoughtCard({
           )
         );
 
-
         setLikesCount(
           Number(
-            data.likesCount ||
-              0
+            data.likesCount || 0
           )
         );
       } catch (error) {
@@ -437,11 +390,9 @@ function ThoughtCard({
           previousLiked
         );
 
-
         setLikesCount(
           previousCount
         );
-
 
         console.error(
           "Like error:",
@@ -467,27 +418,22 @@ function ThoughtCard({
         return;
       }
 
-
       const previous =
         bookmarked;
-
 
       setBookmarked(
         !bookmarked
       );
-
 
       try {
         setBookmarkLoading(
           true
         );
 
-
         const data =
           await toggleThoughtBookmark(
             thought.id
           );
-
 
         setBookmarked(
           Boolean(
@@ -498,7 +444,6 @@ function ThoughtCard({
         setBookmarked(
           previous
         );
-
 
         console.error(
           "Bookmark error:",
@@ -521,13 +466,11 @@ function ThoughtCard({
       const cleanContent =
         editContent.trim();
 
-
       if (
         !cleanContent
       ) {
         return;
       }
-
 
       if (
         cleanContent.length >
@@ -536,19 +479,16 @@ function ThoughtCard({
         return;
       }
 
-
       try {
         setSavingEdit(
           true
         );
-
 
         const data =
           await updateThought(
             thought.id,
             cleanContent
           );
-
 
         if (
           data?.thought
@@ -558,11 +498,9 @@ function ThoughtCard({
           );
         }
 
-
         setEditing(
           false
         );
-
 
         setMenuOpen(
           false
@@ -591,29 +529,22 @@ function ThoughtCard({
           "Delete this thought? This cannot be undone."
         );
 
-
-      if (
-        !confirmed
-      ) {
+      if (!confirmed) {
         return;
       }
-
 
       try {
         setDeleteLoading(
           true
         );
 
-
         await deleteThought(
           thought.id
         );
 
-
         setMenuOpen(
           false
         );
-
 
         onDeleted?.(
           thought.id
@@ -643,10 +574,6 @@ function ThoughtCard({
     };
 
 
-  // ==========================================
-  // CONVERSATION CLOSED
-  // ==========================================
-
   const handleConversationClose =
     () => {
       setConversationOpen(
@@ -667,11 +594,6 @@ function ThoughtCard({
         return;
       }
 
-
-      // ----------------------------------------
-      // CLOSE PANEL
-      // ----------------------------------------
-
       if (
         resonanceOpen
       ) {
@@ -681,11 +603,6 @@ function ThoughtCard({
 
         return;
       }
-
-
-      // ----------------------------------------
-      // REOPEN ALREADY LOADED
-      // ----------------------------------------
 
       if (
         resonanceLoaded
@@ -697,45 +614,31 @@ function ThoughtCard({
         return;
       }
 
-
-      // ----------------------------------------
-      // LOAD FROM SERVER
-      // ----------------------------------------
-
       try {
         setResonanceOpen(
           true
         );
 
-
         setResonanceLoading(
           true
         );
 
-
         setResonanceError(
           ""
         );
-
 
         const data =
           await getExperienceMatches(
             thought.id
           );
 
-
-        const experiences =
+        setResonanceExperiences(
           Array.isArray(
             data?.experiences
           )
             ? data.experiences
-            : [];
-
-
-        setResonanceExperiences(
-          experiences
+            : []
         );
-
 
         setResonanceLoaded(
           true
@@ -745,7 +648,6 @@ function ThoughtCard({
           "Resonance error:",
           error
         );
-
 
         setResonanceError(
           error.message ||
@@ -759,6 +661,92 @@ function ThoughtCard({
     };
 
 
+  // ==========================================
+  // OPEN RESONANCE THOUGHT
+  // ==========================================
+
+  const handleOpenResonanceThought =
+    async (
+      experience
+    ) => {
+      if (
+        !experience?.id ||
+        resonanceThoughtLoading
+      ) {
+        return;
+      }
+
+      try {
+        setResonanceThoughtLoading(
+          true
+        );
+
+        setResonanceThoughtError(
+          ""
+        );
+
+        const data =
+          await getThoughtById(
+            experience.id
+          );
+
+        if (
+          !data?.thought
+        ) {
+          throw new Error(
+            "This thought is no longer available."
+          );
+        }
+
+        setSelectedResonanceThought(
+          data.thought
+        );
+
+        setResonanceBack(
+          true
+        );
+      } catch (error) {
+        console.error(
+          "Open resonance thought error:",
+          error
+        );
+
+        setResonanceThoughtError(
+          error.message ||
+            "Unable to open this thought."
+        );
+      } finally {
+        setResonanceThoughtLoading(
+          false
+        );
+      }
+    };
+
+
+  // ==========================================
+  // CLOSE RESONANCE THOUGHT
+  // ==========================================
+
+  const handleCloseResonanceThought =
+    () => {
+      setSelectedResonanceThought(
+        null
+      );
+
+      setResonanceBack(
+        false
+      );
+
+      setResonanceThoughtError(
+        ""
+      );
+    };
+
+
+  // ==========================================
+  // RENDER
+  // ==========================================
+
   return (
     <>
       <article
@@ -766,7 +754,6 @@ function ThoughtCard({
           w-full
           min-w-0
           overflow-hidden
-
           rounded-[24px]
 
           border
@@ -952,7 +939,9 @@ function ThoughtCard({
                   type="button"
                   onClick={() =>
                     setMenuOpen(
-                      (current) =>
+                      (
+                        current
+                      ) =>
                         !current
                     )
                   }
@@ -1098,7 +1087,7 @@ function ThoughtCard({
 
 
           {/* ====================================
-              EDITOR
+              EDITOR / CONTENT
           ==================================== */}
 
           {editing ? (
@@ -1273,33 +1262,27 @@ function ThoughtCard({
 
             </div>
           ) : (
-            <>
-              {/* =================================
-                  THOUGHT CONTENT
-              ================================= */}
+            <p
+              className="
+                mt-4
+                break-words
 
-              <p
-                className="
-                  mt-4
-                  break-words
+                text-[14px]
+                leading-7
 
-                  text-[14px]
-                  leading-7
+                text-[#463d4c]
 
-                  text-[#463d4c]
+                dark:text-[#d8cfdd]
 
-                  dark:text-[#d8cfdd]
-
-                  sm:text-[15px]
-                "
-              >
-                <MentionText
-                  content={
-                    thought.content
-                  }
-                />
-              </p>
-            </>
+                sm:text-[15px]
+              "
+            >
+              <MentionText
+                content={
+                  thought.content
+                }
+              />
+            </p>
           )}
 
         </div>
@@ -1329,10 +1312,6 @@ function ThoughtCard({
           "
         >
 
-          {/* ==================================
-              LEFT ACTIONS
-          ================================== */}
-
           <div
             className="
               flex
@@ -1342,9 +1321,7 @@ function ThoughtCard({
             "
           >
 
-            {/* ==================================
-                LIKE
-            ================================== */}
+            {/* LIKE */}
 
             <button
               type="button"
@@ -1359,13 +1336,10 @@ function ThoughtCard({
                 items-center
                 gap-1.5
                 rounded-full
-
                 px-2.5
                 py-2
-
                 text-[11px]
                 font-semibold
-
                 transition
 
                 ${
@@ -1388,11 +1362,6 @@ function ThoughtCard({
                     `
                 }
               `}
-              aria-label={
-                liked
-                  ? "Unlike thought"
-                  : "Like thought"
-              }
             >
 
               <Heart
@@ -1411,9 +1380,7 @@ function ThoughtCard({
             </button>
 
 
-            {/* ==================================
-                COMMENTS
-            ================================== */}
+            {/* COMMENTS */}
 
             <button
               type="button"
@@ -1457,9 +1424,7 @@ function ThoughtCard({
             </button>
 
 
-            {/* ==================================
-                RESONANCE
-            ================================== */}
+            {/* RESONANCE */}
 
             <button
               type="button"
@@ -1539,9 +1504,7 @@ function ThoughtCard({
           </div>
 
 
-          {/* ==================================
-              BOOKMARK
-          ================================== */}
+          {/* BOOKMARK */}
 
           <button
             type="button"
@@ -1555,11 +1518,9 @@ function ThoughtCard({
               grid
               h-9
               w-9
-
               shrink-0
               place-items-center
               rounded-full
-
               transition
 
               ${
@@ -1581,11 +1542,6 @@ function ThoughtCard({
                   `
               }
             `}
-            aria-label={
-              bookmarked
-                ? "Remove bookmark"
-                : "Save thought"
-            }
           >
 
             <Bookmark
@@ -1619,7 +1575,7 @@ function ThoughtCard({
             "
           >
 
-            {/* PANEL HEADER */}
+            {/* HEADER */}
 
             <div
               className="
@@ -1637,69 +1593,60 @@ function ThoughtCard({
 
               <div
                 className="
-                  min-w-0
+                  flex
+                  items-center
+                  gap-2
                 "
               >
 
                 <div
                   className="
-                    flex
-                    items-center
-                    gap-2
+                    grid
+                    h-8
+                    w-8
+                    shrink-0
+                    place-items-center
+                    rounded-full
+
+                    bg-[#eee8f2]
+
+                    text-[#806d8f]
+
+                    dark:bg-[#2a2330]
+                    dark:text-[#c6b4d0]
                   "
                 >
+                  <Sparkles
+                    size={14}
+                  />
+                </div>
 
-                  <div
+
+                <div>
+
+                  <p
                     className="
-                      grid
-                      h-8
-                      w-8
-                      shrink-0
-                      place-items-center
-                      rounded-full
+                      text-[11px]
+                      font-semibold
+                      text-[#44394b]
 
-                      bg-[#eee8f2]
-
-                      text-[#806d8f]
-
-                      dark:bg-[#2a2330]
-                      dark:text-[#c6b4d0]
+                      dark:text-[#eee7f2]
                     "
                   >
-                    <Sparkles
-                      size={14}
-                      strokeWidth={1.8}
-                    />
-                  </div>
+                    Resonance
+                  </p>
 
+                  <p
+                    className="
+                      mt-0.5
+                      text-[9px]
+                      text-[#9b919f]
 
-                  <div>
-                    <p
-                      className="
-                        text-[11px]
-                        font-semibold
-
-                        text-[#44394b]
-
-                        dark:text-[#eee7f2]
-                      "
-                    >
-                      Resonance
-                    </p>
-
-                    <p
-                      className="
-                        mt-0.5
-                        text-[9px]
-
-                        text-[#9b919f]
-
-                        dark:text-[#817786]
-                      "
-                    >
-                      Anonymous experiences that may feel familiar.
-                    </p>
-                  </div>
+                      dark:text-[#817786]
+                    "
+                  >
+                    Thoughts that may feel familiar.
+                  </p>
 
                 </div>
 
@@ -1723,13 +1670,9 @@ function ThoughtCard({
 
                   text-[#908593]
 
-                  transition
-
                   hover:bg-black/5
-                  hover:text-[#55495c]
 
                   dark:hover:bg-white/5
-                  dark:hover:text-[#e6dce9]
                 "
                 aria-label="Close resonance"
               >
@@ -1741,9 +1684,7 @@ function ThoughtCard({
             </div>
 
 
-            {/* ==================================
-                LOADING
-            ================================== */}
+            {/* LOADING */}
 
             {resonanceLoading && (
               <div
@@ -1751,10 +1692,8 @@ function ThoughtCard({
                   flex
                   items-center
                   justify-center
-
                   border-t
                   border-[#eee8f0]
-
                   px-5
                   py-8
 
@@ -1767,15 +1706,12 @@ function ThoughtCard({
                     flex
                     items-center
                     gap-2
-
                     text-[10px]
-
                     text-[#958a99]
 
                     dark:text-[#817786]
                   "
                 >
-
                   <LoaderCircle
                     size={15}
                     className="
@@ -1790,9 +1726,7 @@ function ThoughtCard({
             )}
 
 
-            {/* ==================================
-                ERROR
-            ================================== */}
+            {/* ERROR */}
 
             {!resonanceLoading &&
               resonanceError && (
@@ -1800,7 +1734,6 @@ function ThoughtCard({
                   className="
                     border-t
                     border-[#eee8f0]
-
                     px-4
                     py-4
 
@@ -1837,9 +1770,7 @@ function ThoughtCard({
               )}
 
 
-            {/* ==================================
-                NO MATCHES
-            ================================== */}
+            {/* NO MATCHES */}
 
             {!resonanceLoading &&
               !resonanceError &&
@@ -1849,46 +1780,25 @@ function ThoughtCard({
                   className="
                     border-t
                     border-[#eee8f0]
-
                     px-5
                     py-8
-
                     text-center
 
                     dark:border-[#2c2731]
                   "
                 >
 
-                  <div
+                  <HeartHandshake
+                    size={24}
                     className="
                       mx-auto
-                      grid
-                      h-10
-                      w-10
-                      place-items-center
-                      rounded-full
-
-                      bg-[#eee8f2]
-
-                      text-[#806d8f]
-
-                      dark:bg-[#29222f]
-                      dark:text-[#c6b4d0]
+                      text-[#b29ebd]
                     "
-                  >
-
-                    <HeartHandshake
-                      size={17}
-                      strokeWidth={1.8}
-                    />
-
-                  </div>
-
+                  />
 
                   <p
                     className="
                       mt-3
-
                       text-[11px]
                       font-semibold
 
@@ -1899,7 +1809,6 @@ function ThoughtCard({
                   >
                     No close resonance yet.
                   </p>
-
 
                   <p
                     className="
@@ -1916,7 +1825,7 @@ function ThoughtCard({
                     "
                   >
                     As more people share thoughts,
-                    Unsaid will find experiences
+                    Unsaid will discover experiences
                     that feel closer to yours.
                   </p>
 
@@ -1924,9 +1833,7 @@ function ThoughtCard({
               )}
 
 
-            {/* ==================================
-                MATCHES
-            ================================== */}
+            {/* MATCH LIST */}
 
             {!resonanceLoading &&
               !resonanceError &&
@@ -1941,8 +1848,6 @@ function ThoughtCard({
                   "
                 >
 
-                  {/* MATCH COUNT */}
-
                   <div
                     className="
                       px-4
@@ -1951,7 +1856,6 @@ function ThoughtCard({
                       sm:px-5
                     "
                   >
-
                     <p
                       className="
                         text-[10px]
@@ -1967,11 +1871,8 @@ function ThoughtCard({
                         ? "1 person expressed something similar."
                         : `${resonanceExperiences.length} people expressed something similar.`}
                     </p>
-
                   </div>
 
-
-                  {/* EXPERIENCE LIST */}
 
                   <div
                     className="
@@ -1988,42 +1889,70 @@ function ThoughtCard({
                         experience,
                         index
                       ) => (
-                        <div
+                        <button
                           key={
-                            `${experience.createdAt || "experience"}-${index}`
+                            `${experience.id}-${index}`
+                          }
+                          type="button"
+                          onClick={() =>
+                            handleOpenResonanceThought(
+                              experience
+                            )
+                          }
+                          disabled={
+                            resonanceThoughtLoading
                           }
                           className="
+                            group
+                            flex
+                            w-full
+                            items-start
+                            gap-3
+
                             px-4
                             py-4
+
+                            text-left
+
+                            transition
+
+                            hover:bg-white
+
+                            disabled:cursor-wait
+                            disabled:opacity-70
+
+                            dark:hover:bg-[#1c1821]
 
                             sm:px-5
                           "
                         >
 
-                          <div
+                          <span
                             className="
-                              flex
-                              gap-3
+                              mt-2
+                              h-2
+                              w-2
+                              shrink-0
+                              rounded-full
+
+                              bg-[#b9a6c2]
+
+                              dark:bg-[#806d8f]
+                            "
+                          />
+
+
+                          <span
+                            className="
+                              min-w-0
+                              flex-1
                             "
                           >
 
                             <span
                               className="
-                                mt-2
-                                h-2
-                                w-2
-                                shrink-0
-                                rounded-full
+                                block
 
-                                bg-[#b9a6c2]
-
-                                dark:bg-[#806d8f]
-                              "
-                            />
-
-
-                            <p
-                              className="
                                 whitespace-pre-wrap
                                 break-words
 
@@ -2035,12 +1964,42 @@ function ThoughtCard({
                                 dark:text-[#d8cddc]
                               "
                             >
-                              {experience.content}
-                            </p>
+                              {
+                                experience.content
+                              }
+                            </span>
 
-                          </div>
 
-                        </div>
+                            <span
+                              className="
+                                mt-2
+                                inline-flex
+                                items-center
+                                gap-1
+
+                                text-[9px]
+                                font-semibold
+
+                                text-[#806d8f]
+
+                                dark:text-[#c6b4d0]
+                              "
+                            >
+                              Open thought →
+
+                              {resonanceThoughtLoading && (
+                                <LoaderCircle
+                                  size={11}
+                                  className="
+                                    animate-spin
+                                  "
+                                />
+                              )}
+                            </span>
+
+                          </span>
+
+                        </button>
                       )
                     )}
 
@@ -2056,7 +2015,184 @@ function ThoughtCard({
 
 
       {/* ======================================
-          CONVERSATION PANEL
+          SELECTED RESONANCE THOUGHT
+      ====================================== */}
+
+      {selectedResonanceThought && (
+        <div
+          className="
+            fixed
+            inset-0
+            z-[200]
+            overflow-y-auto
+
+            bg-black/50
+
+            px-3
+            py-6
+
+            backdrop-blur-sm
+
+            sm:px-5
+            sm:py-10
+          "
+          onClick={
+            handleCloseResonanceThought
+          }
+        >
+
+          <div
+            className="
+              mx-auto
+              w-full
+              max-w-[650px]
+            "
+            onClick={(
+              event
+            ) =>
+              event.stopPropagation()
+            }
+          >
+
+            {/* BACK BAR */}
+
+            <div
+              className="
+                mb-3
+                flex
+                items-center
+                justify-between
+              "
+            >
+
+              <button
+                type="button"
+                onClick={
+                  handleCloseResonanceThought
+                }
+                className="
+                  inline-flex
+                  items-center
+                  gap-2
+
+                  rounded-full
+
+                  bg-[#1b191f]
+
+                  px-4
+                  py-2.5
+
+                  text-[10px]
+                  font-semibold
+                  text-[#e7dfe9]
+
+                  shadow-lg
+                "
+              >
+                <span>
+                  ←
+                </span>
+
+                Back to resonance
+              </button>
+
+
+              <button
+                type="button"
+                onClick={
+                  handleCloseResonanceThought
+                }
+                className="
+                  grid
+                  h-9
+                  w-9
+                  place-items-center
+                  rounded-full
+
+                  bg-[#1b191f]
+
+                  text-[#c0b5c5]
+
+                  shadow-lg
+
+                  hover:text-white
+                "
+                aria-label="Close thought"
+              >
+                <X
+                  size={16}
+                />
+              </button>
+
+            </div>
+
+
+            {/* ERROR */}
+
+            {resonanceThoughtError && (
+              <div
+                className="
+                  mb-3
+                  rounded-[16px]
+                  border
+                  border-red-400/30
+                  bg-red-950/80
+                  px-4
+                  py-3
+                  text-xs
+                  text-red-300
+                "
+              >
+                {
+                  resonanceThoughtError
+                }
+              </div>
+            )}
+
+
+            {/* ACTUAL EXISTING THOUGHT CARD */}
+
+            <ThoughtCard
+              thought={
+                selectedResonanceThought
+              }
+              onDeleted={(
+                id
+              ) => {
+                if (
+                  id ===
+                  selectedResonanceThought.id
+                ) {
+                  setSelectedResonanceThought(
+                    null
+                  );
+                }
+
+                onDeleted?.(
+                  id
+                );
+              }}
+              onUpdated={(
+                updatedThought
+              ) => {
+                setSelectedResonanceThought(
+                  updatedThought
+                );
+
+                onUpdated?.(
+                  updatedThought
+                );
+              }}
+            />
+
+          </div>
+
+        </div>
+      )}
+
+
+      {/* ======================================
+          NORMAL CONVERSATION PANEL
       ====================================== */}
 
       {conversationOpen && (
@@ -2070,7 +2206,6 @@ function ThoughtCard({
           }
         />
       )}
-
     </>
   );
 }
