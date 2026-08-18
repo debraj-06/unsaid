@@ -370,108 +370,104 @@ function Topbar({
   // MOBILE NAV ITEM
   // ==========================================
 
-  const MobileNavItem = ({
-    item,
-  }) => {
-    const Icon =
-      item.icon;
+  const MobileNavItem = ({ item }) => {
+  const Icon = item.icon;
 
-    return (
-      <NavLink
-        to={
-          item.path
-        }
-        end={
-          item.path === "/"
-        }
-        onClick={() =>
-          setMobileMenuOpen(
-            false
-          )
-        }
-        className={({ isActive }) =>
-          `
-            group
-            flex
-            min-h-[54px]
-            w-full
-            items-center
-            gap-3
-            rounded-[16px]
-            px-3
-            transition-all
-            duration-200
+  return (
+    <NavLink
+      to={item.path}
+      end={item.path === "/"}
+      onClick={() =>
+        setMobileMenuOpen(false)
+      }
+      className={({ isActive }) =>
+        `
+          group
+          flex
+          min-h-[54px]
+          w-full
+          items-center
+          gap-3
+          rounded-[16px]
+          px-3
+          transition-all
+          duration-200
 
-            ${
-              isActive
-                ? `
-                  bg-[#eee8ff]
-                  text-[#302839]
-                  shadow-[0_4px_18px_rgba(238,232,255,0.07)]
-                `
-                : `
-                  text-[#b9afc0]
-                  hover:bg-white/[0.045]
-                  hover:text-[#f3edf7]
-                `
-            }
-          `
-        }
-      >
-        {({ isActive }) => (
-          <>
-            <span
-              className={`
-                grid
-                h-10
-                w-10
-                shrink-0
-                place-items-center
-                rounded-[12px]
-                transition-all
+          ${
+            isActive
+              ? `
+                bg-[#eee8ff]
+                !text-[#302839]
+                shadow-[0_4px_18px_rgba(238,232,255,0.08)]
+              `
+              : `
+                text-[#b9afc0]
+                hover:bg-white/[0.045]
+                hover:text-[#f3edf7]
+              `
+          }
+        `
+      }
+    >
+      {({ isActive }) => (
+        <>
+          <span
+            className={`
+              grid
+              h-10
+              w-10
+              shrink-0
+              place-items-center
+              rounded-[12px]
+              transition-all
 
-                ${
-                  isActive
-                    ? `
-                      bg-[#302839]/[0.08]
-                      text-[#302839]
-                    `
-                    : `
-                      bg-transparent
-                      text-[#918698]
-                      group-hover:text-[#eee8f2]
-                    `
-                }
-              `}
-            >
-              <Icon
-                size={18}
-                strokeWidth={1.8}
-              />
-            </span>
-
-            <span
-              className={`
-                text-[13px]
-                leading-none
-                tracking-[-0.01em]
-
-                ${
-                  isActive
-                    ? "font-semibold"
-                    : "font-medium"
-                }
-              `}
-            >
-              {
-                item.label
+              ${
+                isActive
+                  ? `
+                    bg-[#302839]/[0.08]
+                    !text-[#302839]
+                  `
+                  : `
+                    bg-transparent
+                    text-[#918698]
+                    group-hover:text-[#eee8f2]
+                  `
               }
-            </span>
-          </>
-        )}
-      </NavLink>
-    );
-  };
+            `}
+          >
+            <Icon
+              size={18}
+              strokeWidth={1.8}
+            />
+          </span>
+
+          <span
+            className={`
+              text-[13px]
+              leading-none
+              tracking-[-0.01em]
+
+              ${
+                isActive
+                  ? `
+                    !text-[#302839]
+                    font-semibold
+                  `
+                  : `
+                    text-[#b9afc0]
+                    font-medium
+                    group-hover:text-[#f3edf7]
+                  `
+              }
+            `}
+          >
+            {item.label}
+          </span>
+        </>
+      )}
+    </NavLink>
+  );
+};
 
 
   return (
